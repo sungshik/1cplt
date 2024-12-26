@@ -1,0 +1,21 @@
+global Prod(x: number, ok: boolean)
+{
+  main:
+    self -> Cons.p |>
+      if
+        ps.length < m
+      then
+        ps := ps.concat([p]) ;
+        true -> p.ok
+      else
+        false -> p.ok
+}
+
+global Cons(p: Prod, ps: Prod[], m: number)
+
+process Prod[1](5, false)
+process Prod[2](6, false)
+process Prod[3](7, false)
+process Cons(Prod[1], [], 2)
+//           ^^^^^^^
+//           Dummy initial value

@@ -1,0 +1,42 @@
+global B1(x: number, neigh: Bi)
+{
+  main:
+    "foo" -> S.title |> {
+      123 -> B1.x |> {
+        (x / 3) -> neigh.y |>
+          contrib
+      } ;
+      foreach<Bi> n in neighs do
+        123 -> n.x |>
+          contrib
+    }
+}
+
+global Bi(
+  x, y, f: number,
+  last: boolean,
+  neigh: Bi)
+{
+  contrib:
+    if
+      x != -1 && y != -1
+    then {
+      if
+        last
+      then
+        (x - y < x / f) -> S.result
+      else
+        (x / f + y) -> neigh.y |> contrib
+    }
+}
+
+global S(
+  title: string,
+  result: boolean,
+  neighs: Bi[])
+
+process B1(-1, Bi[2])
+process Bi[2](-1, -1, 5, false, Bi[3])
+process Bi[3](-1, -1, 8, false, Bi[4])
+process Bi[4](-1, -1, 2, true, Bi[4])
+process S("", false, [Bi[2], Bi[3], Bi[4]])

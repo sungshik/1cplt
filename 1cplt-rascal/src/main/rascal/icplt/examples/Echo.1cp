@@ -1,0 +1,40 @@
+global N(
+  neighs, senders: N[],
+  parent, sender:  N,
+  init: boolean)
+{
+  main:
+    parent := self ;
+    if init then
+      roll
+
+  roll:
+    foreach<N> neigh in neighs do
+      if
+        neigh != parent
+      then
+        self -> neigh.sender |>
+          recv
+
+  recv:
+    senders := cons(sender, senders) ;
+    if
+      // Step 1: First receive?
+      senders.length == 1 && !init
+    then
+      // Step 2: Send to non-parents
+      parent := sender ;
+      roll
+    else if
+      // Step 3: Last receive?
+      senders.length == neighs.length
+    then
+      // Step 4: Send to parent
+      self -> parent.sender |>
+        recv
+}
+
+process N[1]([      N[2], N[3], N[4]], [], N[1], N[1], true)
+process N[2]([N[1],       N[3], N[4]], [], N[2], N[2], false)
+process N[3]([N[1], N[2],       N[4]], [], N[3], N[3], false)
+process N[4]([N[1], N[2], N[3]      ], [], N[4], N[4], false)

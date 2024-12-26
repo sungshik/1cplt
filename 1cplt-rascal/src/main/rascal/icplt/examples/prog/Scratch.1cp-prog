@@ -1,0 +1,32 @@
+global Alice(i: number, foo: number, b: boolean, xyz: number[], s: string)
+{
+  main:
+    i := headOrDefault([5, 6], 7) ;
+    xyz := tailOrDefault(xyz, []) ;
+    b := isNil(xyz) ;
+    xyz := cons(7, xyz) ;
+    i := 5 ;
+    i -> Bob.bar |> {
+      i := i + 1 ;
+      i == true -> a.b |> {
+        if b && false then
+          i := 0
+        else
+          foo := 90
+      }
+    } ;
+
+    i := 0 ;
+    foreach<number> x in [5, 6, 7] do
+      i := i + x ;
+
+    s := "";
+    foreach<string> x in ["foo"] do
+      foreach<string> y in ["bar", "baz"] do
+        s := s + x + y + " "
+}
+
+global Bob(i: number, bar: number, a: Alice)
+
+process Alice[5](6, 8, true, [], "")
+process Bob(8, 9, Alice[5])

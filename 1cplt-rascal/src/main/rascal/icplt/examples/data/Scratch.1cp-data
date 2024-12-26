@@ -1,0 +1,46 @@
+// Pids
+Alice[5],
+
+// Null
+null,
+
+// Booleans
+b, b1, b2,
+true, false,
+!true,
+b123 && false,
+true && false,
+true && 5,
+true || 6,
+
+// Numbers
+n, n1, n2,
+5, 6, 7,
+5 as number,
+"foo" as number,
+(5),
+[5, 6, 7].length,
+[5, 6, 7].length + 8,
+n + 6,
+5 + 6,
+5 + "bar",
+5 / 0,
+5 / true,
+5 * 6 < 31 - 1,
+false ? 5 : false ? 6 : 7,
+
+// Strings
+s, s1, s2,
+"foo", "bar",
+s1234 + "bar",
+"foo" + "bar",
+"foo" + 6,
+
+// Arrays
+[] as number[],
+[5 + 6] as number[],
+[5 + 6, 7, false],
+[5 + 6, 7, false] as number[].concat([2 + 3]),
+["foo" + "bar", "baz", false],
+([] as number[]).concat(["foo"]),
+["foo"].concat(["bar", "baz"])

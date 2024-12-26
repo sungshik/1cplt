@@ -1,0 +1,17 @@
+global N(neigh: N, x, y: number, z: boolean)
+{
+  main:
+    x -> neigh.y |> forward
+
+  forward:
+    if
+      x < y
+    then
+      y -> neigh.y |> forward
+    else
+      z := x == y // Leader?
+}
+
+process N[1](N[2], 5, -1, false)
+process N[2](N[3], 6, -1, false)
+process N[3](N[1], 7, -1, false)
