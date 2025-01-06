@@ -4,4 +4,3 @@ dist/
 bin/
 lib/
 *.vsix
-assets/jars/*.jar
