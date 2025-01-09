@@ -1,9 +1,9 @@
-global B1(x: number, neigh: Bi)
+global B1(x, f: number, neigh: Bi)
 {
   main:
     "foo" -> S.title |> {
       123 -> B1.x |> {
-        (x / 3) -> neigh.y |>
+        (x / f) -> neigh.y |>
           contrib
       } ;
       foreach<Bi> n in neighs do
@@ -19,7 +19,7 @@ global Bi(
 {
   contrib:
     if
-      x != -1 && y != -1
+      x != 0 && y != 0
     then {
       if
         last
@@ -35,8 +35,8 @@ global S(
   result: boolean,
   neighs: Bi[])
 
-process B1(-1, Bi[2])
-process Bi[2](-1, -1, 5, false, Bi[3])
-process Bi[3](-1, -1, 8, false, Bi[4])
-process Bi[4](-1, -1, 2, true, Bi[4])
+process B1(0, 3, Bi[2])
+process Bi[2](0, 0, 5, false, Bi[3])
+process Bi[3](0, 0, 8, false, Bi[4])
+process Bi[4](0, 0, 2, true, Bi[4])
 process S("", false, [Bi[2], Bi[3], Bi[4]])
