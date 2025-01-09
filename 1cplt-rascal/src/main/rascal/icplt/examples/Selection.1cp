@@ -1,0 +1,16 @@
+global Alice(n: number, s: string)
+{
+  main:
+     n -> Bob.n |> {
+      case n % 3 of
+        1: "one" -> Alice.s
+        2: "two" -> Alice.s
+        3: "three" -> Alice.s ;
+      n := -1
+    }
+}
+
+global Bob(n: number)
+
+process Alice(5, "")
+process Bob(-1)

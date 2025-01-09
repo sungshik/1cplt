@@ -16,10 +16,13 @@ syntax ChorExpression
     > DataExpression "-\>" DataExpression "." DataVariable "|\>" ChorExpression
     | "if" DataExpression "then" ChorExpression
     | "if" DataExpression "then" ChorExpression "else" ChorExpression
+    | "case" DataExpression "of" Branch+
     | "while" DataExpression "do" ChorExpression
     > DataExpression "." ChorExpression
     > left seq: ChorExpression ";" ChorExpression
     ;
+
+syntax Branch = Number ":" ChorExpression!seq ;
 
 lexical ChorVariable
     = "main"

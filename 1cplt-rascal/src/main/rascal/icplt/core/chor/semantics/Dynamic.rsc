@@ -50,6 +50,10 @@ tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_E
     = <s, e1> when val(true) := eval(s, eData) ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION _: choice(eData, e1, e2)>)
     = <s, e2> when val(false) := eval(s, eData) ;
+tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION _: select(eData, branches)>)
+    = <s, ei> when val(vi) := eval(s, eData), <vi, ei> <- branches ;
+tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION _: select(eData, branches)>)
+    = <s, skip()> when val(vi) := eval(s, eData), !any(<vi, _> <- branches) ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION _: loop(eData, e1)>)
     = <s, seq(e1, loop(eData, e1))> when val(true) := eval(s, eData) ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION _: loop(eData, e1)>)

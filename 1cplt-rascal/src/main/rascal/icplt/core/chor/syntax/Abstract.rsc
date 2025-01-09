@@ -32,6 +32,7 @@ data CHOR_EXPRESSION(loc src = |unknown:///|)
     | asgn(DATA_VARIABLE xData, DATA_EXPRESSION eData, loc xDataSrc = |unknown:///|)
     | comm(DATA_EXPRESSION eData1, DATA_EXPRESSION eData2, DATA_VARIABLE xData, CHOR_EXPRESSION e1, loc xDataSrc = |unknown:///|)
     | choice(DATA_EXPRESSION eData, CHOR_EXPRESSION e1, CHOR_EXPRESSION e2)
+    | select(DATA_EXPRESSION eData, list[tuple[NUMBER, CHOR_EXPRESSION]] branches)
     | loop(DATA_EXPRESSION eData, CHOR_EXPRESSION e1)
     | at(DATA_EXPRESSION eData, CHOR_EXPRESSION e1)
     | seq(CHOR_EXPRESSION e1, CHOR_EXPRESSION e2)
@@ -51,6 +52,8 @@ CHOR_EXPRESSION toAbstract(e: (ChorExpression) `if <DataExpression eData> then <
     = choice(toAbstract(eData), toAbstract(e1), skip()) [src = e.src] ;
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `if <DataExpression eData> then <ChorExpression e1> else <ChorExpression e2>`)
     = choice(toAbstract(eData), toAbstract(e1), toAbstract(e2)) [src = e.src] ;
+CHOR_EXPRESSION toAbstract(e: (ChorExpression) `case <DataExpression eData> of <Branch+ branches>`)
+    = select(toAbstract(eData), [<toAbstract(ni), toAbstract(ei)> | (Branch) `<Number ni> : <ChorExpression ei>` <- branches]) [src = e.src] ;
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `while <DataExpression eData> do <ChorExpression e1>`)
     = loop(toAbstract(eData), toAbstract(e1)) [src = e.src] ;
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<DataExpression eData>.<ChorExpression e1>`)

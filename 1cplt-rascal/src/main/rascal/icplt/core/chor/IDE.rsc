@@ -115,6 +115,10 @@ list[InlayHint] inlayHintService(CHOR_EXPRESSION e, str name = "self") {
             hints += inlayHintService(e1, name = name);
             hints += inlayHintService(e2, name = name);
         }
+        case CHOR_EXPRESSION _: select(eData, branches): {
+            hints += toHints(eData, label);
+            hints += [*inlayHintService(ei, name = name) | <_, ei> <- branches];
+        }
         case CHOR_EXPRESSION _: loop(eData, e1): {
             hints += toHints(eData, label);
             hints += inlayHintService(e1, name = name);

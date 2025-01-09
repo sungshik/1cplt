@@ -88,6 +88,8 @@ list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: com
     when inContext(p, c) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: choice(eData, e1, e2))
     = check(boolean(), context(c.gammas[p]), eData) + check(t, c, e1) + check(t, c, e2) ;
+list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: select(eData, branches))
+    = check(number(), context(c.gammas[p]), eData) + [*check(t, c, ei) | <_, ei> <- branches] ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: loop(eData, e1))
     = check(boolean(), context(c.gammas[p]), eData) + check(t, c, e1) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: at(eData, e1))
