@@ -12,6 +12,6 @@ global N(neigh: N, x, y: number, z: boolean)
       z := x == y // Leader?
 }
 
-process N[1](N[2], 5, -1, false)
-process N[2](N[3], 6, -1, false)
-process N[3](N[1], 7, -1, false)
+process N[1](N[2], 5, 0, false)
+process N[2](N[3], 6, 0, false)
+process N[3](N[1], 7, 0, false)
