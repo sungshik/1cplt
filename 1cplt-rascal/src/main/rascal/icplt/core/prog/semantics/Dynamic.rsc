@@ -63,6 +63,14 @@ tuple[PROG_STATE, PROG_EXPRESSION] reduce(<PROG_STATE s, PROG_EXPRESSION e>) {
                                                               qjTarget := reduce(setChi(qjSource, getChi(piTarget))),
                                                               {} := getChi(qjTarget)};
 
+    alts += {alt + (pi: piTarget2) | alt <- s.alts, pi <- alt,
+                                     piSource1 := alt[pi],
+                                     piTarget1 := reduce(piSource1),
+                                     {<pi, _>} := getChi(piTarget1),
+                                     piSource2 := piTarget1,
+                                     piTarget2 := reduce(setChi(piSource2, getChi(piTarget1))),
+                                     {} := getChi(piTarget2)};
+
     return <{} == alts ? s : state(alts), e>;
 }
 
