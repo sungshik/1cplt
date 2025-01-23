@@ -1,5 +1,6 @@
 module icplt::core::\prog::IDE
 
+import IO;
 import Map;
 import Message;
 import ParseTree;
@@ -10,13 +11,17 @@ import util::Maybe;
 import util::Reflective;
 
 import icplt::core::\chor::IDE;
-import icplt::core::\chor::\syntax::Abstract;
-import icplt::core::\chor::\semantics::Static;
 import icplt::core::\chor::\semantics::Dynamic;
+import icplt::core::\chor::\syntax::Abstract;
+import icplt::core::\prog::\semantics::JavaScript;
+import icplt::core::\prog::\semantics::JSON;
+import icplt::core::\chor::\semantics::Static;
+import icplt::core::\prog::\semantics::Dynamic;
+import icplt::core::\prog::\semantics::Static;
 import icplt::core::\prog::\syntax::Abstract;
 import icplt::core::\prog::\syntax::Concrete;
-import icplt::core::\prog::\semantics::Static;
-import icplt::core::\prog::\semantics::Dynamic;
+import icplt::core::\util::\semantics::JavaScript;
+import icplt::core::\util::\semantics::JSON;
 
 void register(Language lang = language()) {
     registerLanguage(lang);
@@ -60,17 +65,22 @@ Summary analysisService(loc l, PROG_EXPRESSION e, PROG_CONTEXT c = toProgContext
 }
 
 lrel[loc, Command] codeLensService(start[Prog] input) {
-    set[PROG_EXPRESSION] procs = {toAbstract(process) | /process: (Process) _ := input};
+    PROG_EXPRESSION e = toAbstract(input.top.args[0]);
+    set[PROG_EXPRESSION] globs = {ei | /ei: glob(_, _, _) := e};
+    set[PROG_EXPRESSION] procs = {ei | /ei: proc(_, _, _) := e};
     set[PID] pids = {rk | proc(rk, _, _) <- procs};
 
     lrel[loc, Command] lenses = [];
-    lenses += [<proc.src, simulate(toAbstract(input.top.args[0]), pids, title = "Simulate all")> | PROG_EXPRESSION proc <- procs];
-    lenses += [<proc.src, simulate(toAbstract(input.top.args[0]), {rk}, title = "Simulate <toStr(val(rk))>")> | PROG_EXPRESSION proc: proc(rk, _, _) <- procs];
+    lenses += [<glob.src, generateCode(e, input.src, title = "Generate code")> | PROG_EXPRESSION glob <- globs];
+    lenses += [<proc.src, generateCode(e, input.src, title = "Generate code")> | PROG_EXPRESSION proc <- procs];
+    lenses += [<proc.src, simulate(e, pids, title = "Simulate all")> | PROG_EXPRESSION proc <- procs];
+    lenses += [<proc.src, simulate(e, {rk}, title = "Simulate <toStr(val(rk))>")> | PROG_EXPRESSION proc: proc(rk, _, _) <- procs];
     return lenses;
 }
 
 data Command
     = simulate(PROG_EXPRESSION e, set[PID] pids)
+    | generateCode(PROG_EXPRESSION e, loc file)
     ;
 
 void executionService(simulate(PROG_EXPRESSION e, set[PID] pids)) {
@@ -143,6 +153,34 @@ void executionService(simulate(PROG_EXPRESSION e, set[PID] pids)) {
 
     Content content = plainText(text);
     showInteractiveContent(content, title = "Simulation");
+}
+
+void executionService(generateCode(PROG_EXPRESSION e, loc file)) {
+
+    void generateFile(loc target, str s) {
+        loc source = file;
+        copy(source, target);
+        writeFile(target, s);
+    }
+
+    loc parent = file.parent + "<file.file>.package";
+
+    str json = icplt::core::\util::\semantics::JSON::format(toJSON(e));
+    generateFile(parent + "<file.file>.json", json);
+
+    str js = "";
+    js += "jsonPath = \'<file.file>.json\';\n";
+    js += "jsPath = \'<file.file>.js\';\n";
+    js += "\n";
+    js += "<icplt::core::\util::\semantics::JavaScript::format(toJavaScript(e))>\n";
+    js += "\n";
+    js += readFile(|project://1cplt-rascal/src/main/resources/main.js|);
+    generateFile(parent + "<file.file>.js", js);
+
+    str sh = "";
+    sh += "npm install ajv 1\> /dev/null\n";
+    sh += "node <file.file>.js\n";
+    generateFile(parent + "<file.file>.sh", sh);
 }
 
 list[InlayHint] inlayHintService(start[Prog] input) {

@@ -56,6 +56,15 @@
       <resource>
         <directory>src/main/rascal</directory>
         <filtering>false</filtering>
+        <includes>
+          <include>**/*.rsc</include>
+          <include>**/*.1cp</include>
+          <include>**/*.1cp-*</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
       </resource>
     </resources>
     <plugins>
