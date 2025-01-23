@@ -5,7 +5,7 @@ extend icplt::core::\util::\syntax::Abstract;
 
 import ParseTree;
 
-import icplt::core::prog::\syntax::Concrete;
+import icplt::core::\prog::\syntax::Concrete;
 
 /*
  * Expressions
