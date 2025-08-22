@@ -109,8 +109,10 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1> as <DataType
     = asc(toAbstract(e1), toAbstract(t1)) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `(<DataExpression e1>)`)
     = toAbstract(e1) [src = e.src] ;
-DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Length _>`)
-    = app("length", [toAbstract(e1)]) [src = e.src] ;
+DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<DataVariable x>`)
+    = "length" == toAbstract(x)
+    ? app("length", [toAbstract(e1)]) [src = e.src]
+    : app("read", [toAbstract(e1), val(toAbstract(x)) [src = x.src]]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Concat _>(<DataExpression e2>)`)
     = app("concat", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<Prefix f> <DataExpression e1>`)
@@ -153,6 +155,7 @@ list[DATA_EXPRESSION] toAbstract((DataExpressionEntry) `<DataVariable x>: <DataE
 @autoName test bool _7b02dfcf7e6daba8fbd6c23fadf4e4a3() = compare(toAbstract(parse(#DataExpression, "(5)")), val(5)) ;
 @autoName test bool _600f0dc1ec014a70c64c038c8d3e6a4a() = compare(toAbstract(parse(#DataExpression, "[].length")), app("length", [app("array", [])])) ;
 @autoName test bool _a514539a6e7ad6d00e704e3bacb3b524() = compare(toAbstract(parse(#DataExpression, "[].concat([])")), app("concat", [app("array", []), app("array", [])])) ;
+@autoName test bool _e17c6a717e8ece4b26022d8f311bfb3d() = compare(toAbstract(parse(#DataExpression, "{}.x")), app("read", [app("object", []), val("x")])) ;
 @autoName test bool _0ebc5fa5150a5256633ff258ecca1fc1() = compare(toAbstract(parse(#DataExpression, "!true")), app("!", [val(true)])) ;
 @autoName test bool _daf49fbc90c589f929a03dbbd0a0685a() = compare(toAbstract(parse(#DataExpression, "5 ** 6")), app("**", [val(5), val(6)])) ;
 @autoName test bool _bf4f9d63fce32cdf03637f45bbeed78e() = compare(toAbstract(parse(#DataExpression, "5 ** 6 ** 7")), app("**", [val(5), app("**", [val(6), val(7)])])) ;
@@ -196,7 +199,9 @@ str toStr(DATA_EXPRESSION _: val(v)) {
 str toStr(DATA_EXPRESSION _: asc(e1, t))
     = "<toStr(e1)> as <toStr(t)>" ;
 str toStr(DATA_EXPRESSION _: app(f, args))
-    = "<f>(<intercalate(", ", [toStr(arg) | arg <- args])>)" ;
+    = "read" == f
+    ? "<toStr(args[0])>.<args[1].v>"
+    : "<f>(<intercalate(", ", [toStr(arg) | arg <- args])>)" ;
 
 @autoName test bool _316445d34c4db4cc504f8205ee83b07a() = toStr(var("x")) == "x" ;
 @autoName test bool _492da7b22b5dd03e48c81b62560c61bc() = toStr(val(<"Alice", 0>)) == "Alice" ;

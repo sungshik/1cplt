@@ -26,7 +26,7 @@ syntax DataExpression
     | [{] {DataExpressionEntry ","}* Comma? [}]
     | DataExpression!comma "as" DataType
     | [(] DataExpression [)]
-    > DataExpression!comma [.] Length
+    > left DataExpression!comma [.] DataVariable
     | left DataExpression!comma [.] Concat [(] DataExpression!comma [)]
     > Prefix DataExpression!comma
     > right DataExpression!comma Exponentiation DataExpression!comma
