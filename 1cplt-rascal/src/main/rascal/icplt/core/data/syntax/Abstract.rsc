@@ -18,6 +18,7 @@ data DATA_TYPE(loc src = |unknown:///|)
     | number()
     | string()
     | array(DATA_TYPE t)
+    | object(map[str, DATA_TYPE] entries)
     ;
 
 DATA_TYPE toAbstract(t: (DataType) `<Role r>`)
@@ -32,6 +33,11 @@ DATA_TYPE toAbstract(t: (DataType) `string`)
     = string() [src = t.src] ;
 DATA_TYPE toAbstract(t: (DataType) `<DataType t1>[]`)
     = array(toAbstract(t1)) [src = t.src] ;
+DATA_TYPE toAbstract(t: (DataType) `{<{DataTypeEntry [;]}* entries> <Semi? _>}`)
+    = object((() | it + toAbstract(entry) | entry <- entries)) ;
+
+map[str, DATA_TYPE] toAbstract((DataTypeEntry) `<DataVariable x>: <DataType t>`)
+    = (toAbstract(x): toAbstract(t)) ;
 
 @autoName test bool _e4027c89195dca169cfbb62416d3c793() = compare(toAbstract(parse(#DataType, "Alice")), pid("Alice")) ;
 @autoName test bool _d9c976d5ed72c5282ddf84c790a1afe6() = compare(toAbstract(parse(#DataType, "null")), null()) ;
@@ -39,6 +45,11 @@ DATA_TYPE toAbstract(t: (DataType) `<DataType t1>[]`)
 @autoName test bool _373b4061a87dec183ffbb6a85d876170() = compare(toAbstract(parse(#DataType, "number")), number()) ;
 @autoName test bool _0e6104dbfdda78c0112651dec61943be() = compare(toAbstract(parse(#DataType, "string")), string()) ;
 @autoName test bool _5607ca24fef95cb3831002e150aedfb1() = compare(toAbstract(parse(#DataType, "Alice[]")), array(pid("Alice"))) ;
+@autoName test bool _381e655c36fd1ed03721f53f2eccc2dd() = compare(toAbstract(parse(#DataType, "{}")), object(())) ;
+@autoName test bool _446785b9191c5c4293c88ed0f9857f05() = compare(toAbstract(parse(#DataType, "{x: null}")), object(("x": null()))) ;
+@autoName test bool _2e1c61445f4038397e0d22f162f29cd5() = compare(toAbstract(parse(#DataType, "{x: boolean; y: number; z: string}")), object(("x": boolean(), "y": number(), "z": string()))) ;
+@autoName test bool _7707b9f00e984888702d0e32b372c0e8() = compare(toAbstract(parse(#DataType, "{outer: {inner: {}}}")), object(("outer": object(("inner": object(())))))) ;
+@autoName test bool _64b5dfe7b4ea53b881774785a582af59() = compare(toAbstract(parse(#DataType, "{outer: {inner: {};};}")), object(("outer": object(("inner": object(())))))) ;
 
 str toStr(DATA_TYPE _: pid(r))
     = "<r>" ;
@@ -84,12 +95,16 @@ data DATA_EXPRESSION(loc src = |unknown:///|)
     | app(str f, list[DATA_EXPRESSION] args)
     ;
 
+DATA_EXPRESSION toAbstract(e: (DataExpression) `self`)
+    = var("self") [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataVariable x>`)
     = var(toAbstract(x)) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataValue v>`)
     = val(toAbstract(v)) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `[<{DataExpression ","}* args>]`)
     = app("array", [toAbstract(arg) | arg <- args]) [src = e.src] ;
+DATA_EXPRESSION toAbstract(e: (DataExpression) `{<{DataExpressionEntry ","}* args> <Comma? _>}`)
+    = app("object", [*toAbstract(arg) | arg <- args]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1> as <DataType t1>`)
     = asc(toAbstract(e1), toAbstract(t1)) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `(<DataExpression e1>)`)
@@ -119,12 +134,21 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1> ? <DataExpre
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>, <{DataExpression ","}+ rest>`)
     = app(",", [toAbstract(e1)] + [toAbstract(ei) | ei <- rest]) [src = e.src] ;
 
+list[DATA_EXPRESSION] toAbstract((DataExpressionEntry) `<DataVariable x>: <DataExpression e>`)
+    = [val(toAbstract(x)) [src = e.src], toAbstract(e)] ;
+
+@autoName test bool _73f34d9fff1b685ffc2c92ade7fc240c() = compare(toAbstract(parse(#DataExpression, "self")), var("self")) ;
 @autoName test bool _3b5a99b0722b1010fa672ae564f47ed1() = compare(toAbstract(parse(#DataExpression, "x")), var("x")) ;
 @autoName test bool _f28075a7113ce1d991dd202adc8bb1d4() = compare(toAbstract(parse(#DataExpression, "5")), val(5)) ;
 @autoName test bool _d73dabae8f033077a409a830d74db6da() = compare(toAbstract(parse(#DataExpression, "[]")), app("array", []));
 @autoName test bool _610773a4f669c144d304b37f4038f29f() = compare(toAbstract(parse(#DataExpression, "[null]")), app("array", [val(NULL)]));
 @autoName test bool _2e8e6f9b191b338369e0a6ddf1911799() = compare(toAbstract(parse(#DataExpression, "[true, 5, \"foo\"]")), app("array", [val(true), val(5), val("foo")]));
 @autoName test bool _abf9b70ca937634f70fbf466ca0a55de() = compare(toAbstract(parse(#DataExpression, "[[[]]]")), app("array", [app("array", [app("array", [])])]));
+@autoName test bool _8d9e29199132916b6b840b8e62756792() = compare(toAbstract(parse(#DataExpression, "{}")), app("object", []));
+@autoName test bool _17497707a08ba134a724f092e5edec7b() = compare(toAbstract(parse(#DataExpression, "{x: null}")), app("object", [val("x"), val(NULL)]));
+@autoName test bool _e8e8657cdaf531c388244e43070a9b83() = compare(toAbstract(parse(#DataExpression, "{x: true, y: 5, z: \"foo\"}")), app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")]));
+@autoName test bool _8bbccd98b05aa3ab097a1373f7525fcf() = compare(toAbstract(parse(#DataExpression, "{outer: {inner: {}}}")), app("object", [val("outer"), app("object", [val("inner"), app("object", [])])]));
+@autoName test bool _3ee4b6212bc54234eede1ebeaa10a7c0() = compare(toAbstract(parse(#DataExpression, "{outer: {inner: {},},}")), app("object", [val("outer"), app("object", [val("inner"), app("object", [])])]));
 @autoName test bool _c39c33a4d2d9cdb8b12432b06ac65ce1() = compare(toAbstract(parse(#DataExpression, "5 as number")), asc(val(5), number())) ;
 @autoName test bool _7b02dfcf7e6daba8fbd6c23fadf4e4a3() = compare(toAbstract(parse(#DataExpression, "(5)")), val(5)) ;
 @autoName test bool _600f0dc1ec014a70c64c038c8d3e6a4a() = compare(toAbstract(parse(#DataExpression, "[].length")), app("length", [app("array", [])])) ;
@@ -163,6 +187,8 @@ str toStr(DATA_EXPRESSION _: val(v)) {
             return "\"<s>\"";
         case ARRAY a: _:
             return "[<intercalate(", ", [toStr(val(vi)) | vi <- a])>]";
+        case OBJECT obj: _:
+            return "{<intercalate(", ", ["<k>: <toStr(val(obj[k]))>" | k <- sort([*obj<0>])])>}";
         default:
             return "<v>";
     }
@@ -187,7 +213,7 @@ str toStr(DATA_EXPRESSION _: app(f, args))
 alias DATA_VARIABLE = str ;
 
 DATA_VARIABLE toAbstract(x: (DataVariable) _)
-    = "<x>";
+    = "<x>" ;
 
 @autoName test bool _4186d041fcfa5ab1f61d1055100231fa() = toAbstract(parse(#DataVariable, "x")) == "x" ;
 
@@ -198,7 +224,7 @@ DATA_VARIABLE toAbstract(x: (DataVariable) _)
 alias DATA_VALUE = value ;
 
 DATA_VALUE toAbstract(v: (DataValue) _)
-    = toAbstract(v.args[0]);
+    = toAbstract(v.args[0]) ;
 
 /*
  * Values: Pids
@@ -255,8 +281,8 @@ NUMBER toAbstract(n: (Number) _)
 
 alias STRING = str ;
 
-STRING toAbstract((String) `"<Print* content>"`)
-    = "<content>" ;
+STRING toAbstract(s: (String) _)
+    = "<s>"[1..-1] ;
 
 @autoName test bool _cf9ed0da356d0312b1b69be4326424c1() = toAbstract(parse(#String, "\"foo\"")) == "foo" ;
 
@@ -265,6 +291,12 @@ STRING toAbstract((String) `"<Print* content>"`)
  */
 
 alias ARRAY = list[value] ;
+
+/*
+ * Values: Objects
+ */
+
+alias OBJECT = map[str, value] ;
 
 /* -------------------------------------------------------------------------- */
 /*                                 `foreach`                                  */

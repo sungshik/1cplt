@@ -1,5 +1,8 @@
 module icplt::core::\util::\syntax::Concrete
 
+lexical Comma = [,] ;
+lexical Semi = [;] ;
+
 lexical Alnum = Alpha | Digit ;
 lexical Alpha = Lower | Upper ;
 lexical Blank = [\ \t] ;

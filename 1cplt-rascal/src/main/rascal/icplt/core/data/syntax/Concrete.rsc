@@ -10,7 +10,11 @@ syntax DataType
     | @category="keyword" "number"
     | @category="keyword" "string"
     | DataType [\[] [\]]
+    | [{] {DataTypeEntry [;]}* Semi? [}]
     ;
+
+syntax DataTypeEntry
+    = DataVariable [:] DataType ;
 
 lexical Role = @category="type" Upper Alnum* ;
 
@@ -19,6 +23,7 @@ syntax DataExpression
     | DataVariable
     | DataValue
     | [\[] {DataExpression!comma ","}* [\]]
+    | [{] {DataExpressionEntry ","}* Comma? [}]
     | DataExpression!comma "as" DataType
     | [(] DataExpression [)]
     > DataExpression!comma [.] Length
@@ -35,7 +40,9 @@ syntax DataExpression
     > left comma: DataExpression!comma "," {DataExpression!comma ","}+
     ;
 
-lexical Length             = @category="operator" "length" ;
+syntax DataExpressionEntry
+    = DataVariable [:] DataExpression!comma ;
+
 lexical Concat             = @category="operator" "concat" ;
 lexical Prefix             = @category="operator" [!+\-] ;
 lexical Exponentiation     = @category="operator" "**" ;

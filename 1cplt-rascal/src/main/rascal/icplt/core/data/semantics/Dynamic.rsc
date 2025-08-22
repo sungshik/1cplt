@@ -35,6 +35,7 @@ tuple[DATA_STATE, DATA_EXPRESSION] normalize(tuple[DATA_STATE, DATA_EXPRESSION] 
 @autoName test bool _decd159ea168593ee1aa9134d93f9932() = normalize(<s2, app("?:", [app("!", [val(false)]), app("-", [app("/", [var("i"), val(1)])]), app("-", [app("%", [var("j"), val(1)])])])>) == <s2, val(-5)> ;
 @autoName test bool _a6969f9e19e055efa6af94bd1bf6ed7a() = normalize(<s2, app("?:", [app("!", [val(false)]), app("-", [app("/", [var("i"), val(0)])]), app("-", [app("%", [var("j"), val(1)])])])>) == <s2, err()> ;
 @autoName test bool _e60e4c8e8027ded4cfd8ead0d40ebedf() = normalize(<s2, app("?:", [app("!", [val(false)]), app("-", [app("/", [var("i"), val(1)])]), app("-", [app("%", [var("j"), val(0)])])])>) == <s2, err()> ;
+@autoName test bool _ae9f4605a2269e6224c9f2ee3768d0c8() = normalize(<s1, app("object", [val("outer"), app("object", [val("inner"), app("object", [])])])>) == <s1, val(("outer": ("inner": ())))> ;
 
 /*
  * Reduction
@@ -210,6 +211,22 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 @autoName test bool _fc4b1f646afa332cbe69ba93dd0d5e37() = reduce(<s1, app("concat", [val([5, 6]), val([])])>) == <s1, val([5, 6])> ;
 @autoName test bool _2d9914ad1a010b5d6a65f3c03ba0f158() = reduce(<s1, app("concat", [val([]), val([7])])>) == <s1, val([7])> ;
 @autoName test bool _0226fc3abb3b7f6b85a95d956375bae9() = reduce(<s1, app("concat", [val([]), val([])])>) == <s1, val([])> ;
+
+/*
+ * Reduction: Objects
+ */
+
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("object", args)>)
+    = <s, val(toObject(args))> when !any(arg <- args, !(arg is val));
+
+private OBJECT toObject(list[DATA_EXPRESSION] _: [])
+    = () ;
+private OBJECT toObject(list[DATA_EXPRESSION] _: [val(STRING k1), val(v1), *rest])
+    = (k1: v1) + toObject(rest) ;
+
+@autoName test bool _19d92c7c76e0f1475befa2a8667ed55c() = reduce(<s1, app("object", [])>) == <s1, val(())> ;
+@autoName test bool _107564de59436ffb3cf21d91ab9fd44d() = reduce(<s1, app("object", [val("x"), val(NULL)])>) == <s1, val(("x": NULL))> ;
+@autoName test bool _8e9b70981e5afe4cad1aa753b7880f30() = reduce(<s1, app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")])>) == <s1, val(("x": true, "y": 5, "z": "foo"))> ;
 
 /* -------------------------------------------------------------------------- */
 /*                                 `foreach`                                  */
