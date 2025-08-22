@@ -22,7 +22,7 @@ syntax DataExpression
     = "self"
     | DataVariable
     | DataValue
-    | [\[] {DataExpression!comma ","}* [\]]
+    | [\[] {DataExpression!comma ","}* Comma? [\]]
     | [{] {DataExpressionEntry ","}* Comma? [}]
     | DataExpression!comma "as" DataType
     | [(] DataExpression [)]

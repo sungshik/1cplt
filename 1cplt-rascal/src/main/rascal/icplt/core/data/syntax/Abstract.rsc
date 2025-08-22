@@ -101,7 +101,7 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataVariable x>`)
     = var(toAbstract(x)) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataValue v>`)
     = val(toAbstract(v)) [src = e.src] ;
-DATA_EXPRESSION toAbstract(e: (DataExpression) `[<{DataExpression ","}* args>]`)
+DATA_EXPRESSION toAbstract(e: (DataExpression) `[<{DataExpression ","}* args> <Comma? _>]`)
     = app("array", [toAbstract(arg) | arg <- args]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `{<{DataExpressionEntry ","}* args> <Comma? _>}`)
     = app("object", [*toAbstract(arg) | arg <- args]) [src = e.src] ;
