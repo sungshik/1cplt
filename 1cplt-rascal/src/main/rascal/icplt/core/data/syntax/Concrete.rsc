@@ -15,7 +15,8 @@ syntax DataType
 lexical Role = @category="type" Upper Alnum* ;
 
 syntax DataExpression
-    = DataVariable
+    = "self"
+    | DataVariable
     | DataValue
     | [\[] {DataExpression!comma ","}* [\]]
     | DataExpression!comma "as" DataType
@@ -46,9 +47,7 @@ lexical LogicalConjunction = @category="operator" "&&" ;
 lexical LogicalDisjunction = @category="operator" ("||" | "??") ;
 
 lexical DataVariable
-    = "self"
-    | @category="variable" (Lower Alnum*) !>> [0-9 A-Z a-z] \ DataKeyword
-    ;
+    = @category="variable" (Lower Alnum*) !>> [0-9 A-Z a-z] \ DataKeyword ;
 
 syntax DataValue
     = Pid
@@ -58,7 +57,7 @@ syntax DataValue
     | String
     ;
 
-syntax Pid
+lexical Pid
     = Role
     | Role [\[] Number [\]]
     ;
@@ -76,7 +75,7 @@ lexical Number
     = @category="number" Digit+ !>> [0-9] ;
 
 lexical String
-    = @category="string" [\"] Print* [\"] ;
+    = @category="string" [\"]( {(Print | "\\\"") !>> [\"] ()}* (Print | "\\\""))? [\"] ;
 
 keyword DataKeyword
     = "null"
