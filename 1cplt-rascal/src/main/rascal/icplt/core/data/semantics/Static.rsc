@@ -65,7 +65,7 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("?:", [_, e2, e3])
     = just(t) when just(t) := infer(c, e2), just(t) := infer(c, e3) ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app(",", args))
     = just(t) when just(t) := infer(c, args[-1]) ;
-Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("read", [e1, val(k)]))
+Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("access", [e1, val(k)]))
     = just(entries[k]) when just(object(entries)) := infer(c, e1), k in entries ;
 
 @autoName test bool _0fa6283096175ed7ec660bc8ec8c9177() = infer(c1, app("??", [val(true), val(6)])) == just(boolean()) ;
@@ -74,8 +74,8 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("read", [e1, val(k
 @autoName test bool _087622313782d95462a0a2886cd56db0() = infer(c1, app("?:", [val(true), val(5), val(false)])) == nothing() ;
 @autoName test bool _1a01b51fc3d410290b5113c61bdb7ae2() = infer(c1, app(",", [val(5), val(6), val(7)])) == just(number()) ;
 @autoName test bool _dee0f8c5d525a564f4bf49991019c35c() = infer(c1, app(",", [val(5), val(6), val(false)])) == just(boolean()) ;
-@autoName test bool _f7520310ff8913284fd15eda3a00b118() = infer(c1, app("read", [app("object", []), val("x")])) == nothing() ;
-@autoName test bool _bd11eb1ee65ae31be414c51517da3a8b() = infer(c1, app("read", [app("object", [val("x"), val(NULL)]), val("x")])) == just(null()) ;
+@autoName test bool _f7520310ff8913284fd15eda3a00b118() = infer(c1, app("access", [app("object", []), val("x")])) == nothing() ;
+@autoName test bool _bd11eb1ee65ae31be414c51517da3a8b() = infer(c1, app("access", [app("object", [val("x"), val(NULL)]), val("x")])) == just(null()) ;
 
 /*
  * Inference: Pids
@@ -247,7 +247,7 @@ list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("?:", [e
     = check(boolean(), c, e1) + check(t, c, e2) + check(t, c, e3) ;
 list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app(",", args))
     = [*analyze(c, ei) | ei <- args] ;
-list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("read", [e1, e2: val(k)]))
+list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("access", [e1, e2: val(k)]))
     = [error("Expected data type: `{...; <k>: <toStr(t)>; ...}`. Actual: Failed to infer.", e1.src) | nothing() := infer(c, e1)]
     + [error("Unexpected property", e2.src) | just(object(entries)) := infer(c, e1), k notin entries]
     + [error("Expected data type: `<toStr(t)>`. Actual: `<toStr(entries[k])>`.", e2.src) | just(object(entries)) := infer(c, e1), k in entries, t !:= entries[k]] ;
@@ -269,14 +269,14 @@ list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("read", 
 @autoName test bool _0c6b17aa603c1d64ed0e016f516dc34a() = ret := check(number(), c1, app(",", [val(5), var("x"), val(7)])) && [_] := ret ;
 @autoName test bool _97ff22783300bcded16ecf13e984a95a() = ret := check(number(), c1, app(",", [var("x"), val(6), val(7)])) && [_] := ret ;
 @autoName test bool _59093a3fc5154bfb70e213651c8f3f7c() = ret := check(number(), c1, app(",", [var("x"), var("x"), var("x")])) && [_, _, _] := ret ;
-@autoName test bool _5a58b32af59cd2eed8fa06f85f88f39b() = ret := check(null(), c1, app("read", [app("object", [val("x"), val(NULL)]), val("x")])) && [] == ret ;
-@autoName test bool _1a7a9db8916890eef58de4e3b7b32f99() = ret := check(boolean(), c1, app("read", [app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")]), val("x")])) && [] == ret ;
-@autoName test bool _b9401d734d4ec723445a995acf21e156() = ret := check(number(), c1, app("read", [app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")]), val("y")])) && [] == ret ;
-@autoName test bool _61f22250b616f7a2cfcfa45ef25456ee() = ret := check(string(), c1, app("read", [app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")]), val("z")])) && [] == ret ;
-@autoName test bool _757022f2e0c362fa7a75a936f563b9ea() = ret := check(object(("inner": object(()))), c1, app("read", [app("object", [val("outer"), app("object", [val("inner"), app("object", [])])]), val("outer")])) && [] == ret ;
-@autoName test bool _79d040ee7db127214284b4227b1d4833() = ret := check(object(()), c1, app("read", [app("read", [app("object", [val("outer"), app("object", [val("inner"), app("object", [])])]), val("outer")]), val("inner")])) && [] == ret ;
-@autoName test bool _8d036d3cb6866547c36c7afb8b9261d1() = ret := check(number(), c1, app("read", [app("object", []), val("x")])) && [_] := ret ;
-@autoName test bool _153f31f5d728f0c6031830e4f66ccb21() = ret := check(number(), c1, app("read", [app("object", [val("x"), val(NULL)]), val("x")])) && [_] := ret ;
+@autoName test bool _5a58b32af59cd2eed8fa06f85f88f39b() = ret := check(null(), c1, app("access", [app("object", [val("x"), val(NULL)]), val("x")])) && [] == ret ;
+@autoName test bool _1a7a9db8916890eef58de4e3b7b32f99() = ret := check(boolean(), c1, app("access", [app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")]), val("x")])) && [] == ret ;
+@autoName test bool _b9401d734d4ec723445a995acf21e156() = ret := check(number(), c1, app("access", [app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")]), val("y")])) && [] == ret ;
+@autoName test bool _61f22250b616f7a2cfcfa45ef25456ee() = ret := check(string(), c1, app("access", [app("object", [val("x"), val(true), val("y"), val(5), val("z"), val("foo")]), val("z")])) && [] == ret ;
+@autoName test bool _757022f2e0c362fa7a75a936f563b9ea() = ret := check(object(("inner": object(()))), c1, app("access", [app("object", [val("outer"), app("object", [val("inner"), app("object", [])])]), val("outer")])) && [] == ret ;
+@autoName test bool _79d040ee7db127214284b4227b1d4833() = ret := check(object(()), c1, app("access", [app("access", [app("object", [val("outer"), app("object", [val("inner"), app("object", [])])]), val("outer")]), val("inner")])) && [] == ret ;
+@autoName test bool _8d036d3cb6866547c36c7afb8b9261d1() = ret := check(number(), c1, app("access", [app("object", []), val("x")])) && [_] := ret ;
+@autoName test bool _153f31f5d728f0c6031830e4f66ccb21() = ret := check(number(), c1, app("access", [app("object", [val("x"), val(NULL)]), val("x")])) && [_] := ret ;
 
 /*
  * Checking: Pids

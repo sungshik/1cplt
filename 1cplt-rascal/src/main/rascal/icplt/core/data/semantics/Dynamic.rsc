@@ -81,7 +81,7 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
     = <s, val(b ? v1 : v2)> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(",", args)>)
     = <s, args[-1]> when !any(ei <- args, !(ei is val));
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("read", [val(OBJECT obj), val(v)])>)
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("access", [val(OBJECT obj), val(v)])>)
     = <s, val(obj[v])> when v in obj;
 
 @autoName test bool _abe2873c55f423a575fa750dee664e9f() = reduce(<s1, app("??", [val(5), val(6)])>) == <s1, val(5)> ;
@@ -89,9 +89,9 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 @autoName test bool _fd487c3fd6dc64d22935a553202b928a() = reduce(<s1, app("?:", [val(true), val(5), val(6)])>) == <s1, val(5)> ;
 @autoName test bool _dff9883b4ce25ad258d6451448d64782() = reduce(<s1, app("?:", [val(false), val(5), val(6)])>) == <s1, val(6)> ;
 @autoName test bool _02060a9fda16491bedee98e800aab62f() = reduce(<s1, app(",", [val(5), val(6), val(7)])>) == <s1, val(7)> ;
-@autoName test bool _dc68c821a7dc63874b2e9110fe73d2a8() = reduce(<s1, app("read", [val(("x": true, "y": 5, "z": "foo")), val("x")])>) == <s1, val(true)> ;
-@autoName test bool _5d8bcb221ffa77adc26c10bebed66bb5() = reduce(<s1, app("read", [val(("x": true, "y": 5, "z": "foo")), val("y")])>) == <s1, val(5)> ;
-@autoName test bool _490644ace64739efe2d1ebafc3c65ec8() = reduce(<s1, app("read", [val(("x": true, "y": 5, "z": "foo")), val("z")])>) == <s1, val("foo")> ;
+@autoName test bool _dc68c821a7dc63874b2e9110fe73d2a8() = reduce(<s1, app("access", [val(("x": true, "y": 5, "z": "foo")), val("x")])>) == <s1, val(true)> ;
+@autoName test bool _5d8bcb221ffa77adc26c10bebed66bb5() = reduce(<s1, app("access", [val(("x": true, "y": 5, "z": "foo")), val("y")])>) == <s1, val(5)> ;
+@autoName test bool _490644ace64739efe2d1ebafc3c65ec8() = reduce(<s1, app("access", [val(("x": true, "y": 5, "z": "foo")), val("z")])>) == <s1, val("foo")> ;
 
 /*
  * Reduction: Pids
