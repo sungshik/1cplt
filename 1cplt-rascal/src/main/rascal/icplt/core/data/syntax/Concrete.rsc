@@ -30,24 +30,26 @@ syntax DataExpression
     | left DataExpression!comma [.] Concat [(] DataExpression!comma [)]
     > Prefix DataExpression!comma
     > right DataExpression!comma Exponentiation DataExpression!comma
-    > left  DataExpression!comma Multiplication DataExpression!comma
-    > left  DataExpression!comma Addition DataExpression!comma
-    > left  DataExpression!comma LessThan DataExpression!comma
-    > left  DataExpression!comma Equality DataExpression!comma
-    > left  DataExpression!comma LogicalConjunction DataExpression!comma
-    > left  DataExpression!comma LogicalDisjunction DataExpression!comma
+    > left DataExpression!comma Multiplication DataExpression!comma
+    > left DataExpression!comma Addition DataExpression!comma
+    > left DataExpression!comma LessThan DataExpression!comma
+    > left DataExpression!comma Equality DataExpression!comma
+    > left DataExpression!comma LogicalConjunction DataExpression!comma
+    > left DataExpression!comma LogicalDisjunction DataExpression!comma
     > right DataExpression!comma [?] DataExpression!comma [:] DataExpression!comma
     > left comma: DataExpression!comma "," {DataExpression!comma ","}+
     ;
 
 syntax DataExpressionEntry
-    = DataVariable [:] DataExpression!comma ;
+    = DataVariable [:] DataExpression!comma
+    | "..." DataExpression!comma
+    ;
 
 lexical Concat             = @category="operator" "concat" ;
-lexical Prefix             = @category="operator" [!+\-] ;
+lexical Prefix             = @category="operator" [! + \-] ;
 lexical Exponentiation     = @category="operator" "**" ;
-lexical Multiplication     = @category="operator" [*/%] ;
-lexical Addition           = @category="operator" [+\-] ;
+lexical Multiplication     = @category="operator" [* / %] ;
+lexical Addition           = @category="operator" [+ \-] ;
 lexical LessThan           = @category="operator" ("\<" | "\<=" | "\>" | "\>=") ;
 lexical Equality           = @category="operator" ("==" | "!=") ;
 lexical LogicalConjunction = @category="operator" "&&" ;
