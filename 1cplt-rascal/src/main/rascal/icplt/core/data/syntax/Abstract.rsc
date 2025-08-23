@@ -63,6 +63,8 @@ str toStr(DATA_TYPE _: string())
     = "string" ;
 str toStr(DATA_TYPE _: array(t1))
     = "<toStr(t1)>[]" ;
+str toStr(DATA_TYPE _: object(entries))
+    = "{<intercalate("; ", ["<k>: <toStr(entries[k])>" | k <- entries])>}" ;
 
 @autoName test bool _fb052164acb12c42fa08d995f5b484f0() = toStr(pid("Alice")) == "Alice" ;
 @autoName test bool _f787b28bb88a382139a33049e967d220() = toStr(null()) == "null" ;
@@ -137,7 +139,7 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>, <{DataExpre
     = app(",", [toAbstract(e1)] + [toAbstract(ei) | ei <- rest]) [src = e.src] ;
 
 list[DATA_EXPRESSION] toAbstract((DataExpressionEntry) `<DataVariable x>: <DataExpression e>`)
-    = [val(toAbstract(x)) [src = e.src], toAbstract(e)] ;
+    = [val(toAbstract(x)) [src = x.src], toAbstract(e)] ;
 
 @autoName test bool _73f34d9fff1b685ffc2c92ade7fc240c() = compare(toAbstract(parse(#DataExpression, "self")), var("self")) ;
 @autoName test bool _3b5a99b0722b1010fa672ae564f47ed1() = compare(toAbstract(parse(#DataExpression, "x")), var("x")) ;
