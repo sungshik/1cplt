@@ -399,14 +399,19 @@ list[Message] check(DATA_TYPE _: array(t1), DATA_CONTEXT c, DATA_EXPRESSION _: a
  * Checking: Objects
  */
 
-list[Message] check(DATA_TYPE t: object(entries), DATA_CONTEXT c, DATA_EXPRESSION e: app(f, args))
-    = [error("Expected data type: `<toStr(t)>`. Actual: <actual(maybe)>.", e.src) | maybe := infer(c, e), just(t) !:= maybe]
-    + [*check(t, c, arg) | arg <- args] when f in {"object"} ;
+list[Message] check(DATA_TYPE t: object(_), DATA_CONTEXT c, DATA_EXPRESSION e: app(f, args))
+    = [error("Expected data type: any object. Actual: <actual(maybe)>", e.src) | maybe := infer(c, e), just(object(_)) !:= maybe]
+    + [error("Expected property: `<k>`", e.src) | just(object(entries)) := infer(c, e), k <- t.entries, k notin entries]
+    + [*check(t, c, arg) | arg <- args]
+    when f in {"object"} ;
 list[Message] check(DATA_TYPE _: object(entries), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1: val(STRING k1), DATA_EXPRESSION e2]))
     = [error("Unexpected property", e1.src) | k1 notin entries]
-    + [*check(entries[k1], c, e2) | k1 in entries] when f in {"entry"} ;
-list[Message] check(DATA_TYPE t: object(_), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [DATA_EXPRESSION e1]))
-    = check(t, c, e1) when f in {"spread"} ;
+    + [*check(entries[k1], c, e2) | k1 in entries]
+    when f in {"entry"} ;
+list[Message] check(DATA_TYPE t: object(entries), DATA_CONTEXT c, _: DATA_EXPRESSION e: app(f, [DATA_EXPRESSION e1]))
+    = [error("Expected data type: any object. Actual: <actual(maybe)>.", e1.src) | maybe := infer(c, e1), just(object(_)) !:= maybe]
+    + [*check(object((k: entries[k] | k <- entries1, k in entries)), c, e1) | just(object(entries1)) := infer(c, e1)]
+    when f in {"spread"};
 
 // TODO: Add tests for `entry` and `spread`
 
