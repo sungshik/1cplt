@@ -35,6 +35,12 @@ tuple[DATA_STATE, DATA_EXPRESSION] normalize(tuple[DATA_STATE, DATA_EXPRESSION] 
 @autoName test bool _decd159ea168593ee1aa9134d93f9932() = normalize(<s2, app("?:", [app("!", [val(false)]), app("-", [app("/", [var("i"), val(1)])]), app("-", [app("%", [var("j"), val(1)])])])>) == <s2, val(-5)> ;
 @autoName test bool _a6969f9e19e055efa6af94bd1bf6ed7a() = normalize(<s2, app("?:", [app("!", [val(false)]), app("-", [app("/", [var("i"), val(0)])]), app("-", [app("%", [var("j"), val(1)])])])>) == <s2, err()> ;
 @autoName test bool _e60e4c8e8027ded4cfd8ead0d40ebedf() = normalize(<s2, app("?:", [app("!", [val(false)]), app("-", [app("/", [var("i"), val(1)])]), app("-", [app("%", [var("j"), val(0)])])])>) == <s2, err()> ;
+@autoName test bool _6f16b496f82be10e27c8219718e5fea4() = normalize(<s1, app("object", [app("entry", [val("x"), val(NULL)])])>) == <s1, val(("x": NULL))> ;
+@autoName test bool _c3d318778296d2fd863e88994c294c33() = normalize(<s1, app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])>) == <s1, val(("x": true, "y": 5, "z": "foo"))> ;
+@autoName test bool _5b604471f3eb4583721c78a9217cdc90() = normalize(<s1, app("object", [app("entry", [val("outer"), app("object", [app("entry", [val("inner"), app("object", [])])])])])>) == <s1, val(("outer": ("inner": ())))> ;
+@autoName test bool _7c32b3b689fdb0dbc2e44a6c4d635ba6() = normalize(<s1, app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])])])>) == <s1, val(("x": true, "y": 5, "z": "foo"))> ;
+@autoName test bool _8ad52b6e00f87ffd6498e7163a72a3e3() = normalize(<s1, app("object", [app("entry", [val("x"), val(false)]), app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])])])>) == <s1, val(("x": true, "y": 5, "z": "foo"))> ;
+@autoName test bool _91946b1aba0ac9307de46787b3bb6891() = normalize(<s1, app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])]), app("entry", [val("x"), val(false)])])>) == <s1, val(("x": false, "y": 5, "z": "foo"))> ;
 
 /*
  * Reduction
@@ -80,12 +86,17 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
     = <s, val(b ? v1 : v2)> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(",", args)>)
     = <s, args[-1]> when !any(ei <- args, !(ei is val));
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("access", [val(OBJECT obj), val(v)])>)
+    = <s, val(obj[v])> when v in obj;
 
 @autoName test bool _abe2873c55f423a575fa750dee664e9f() = reduce(<s1, app("??", [val(5), val(6)])>) == <s1, val(5)> ;
 @autoName test bool _3f7eee43ea3f6bde29d2ec4afd92802b() = reduce(<s1, app("??", [val(NULL), val(6)])>) == <s1, val(6)> ;
 @autoName test bool _fd487c3fd6dc64d22935a553202b928a() = reduce(<s1, app("?:", [val(true), val(5), val(6)])>) == <s1, val(5)> ;
 @autoName test bool _dff9883b4ce25ad258d6451448d64782() = reduce(<s1, app("?:", [val(false), val(5), val(6)])>) == <s1, val(6)> ;
 @autoName test bool _02060a9fda16491bedee98e800aab62f() = reduce(<s1, app(",", [val(5), val(6), val(7)])>) == <s1, val(7)> ;
+@autoName test bool _c127da0637eafe5f180501d00d4f9007() = reduce(<s1, app("access", [val(("x": true, "y": 5, "z": "foo")), val("x")])>) == <s1, val(true)> ;
+@autoName test bool _560881e7625dccce81a082e2b8226be9() = reduce(<s1, app("access", [val(("x": true, "y": 5, "z": "foo")), val("y")])>) == <s1, val(5)> ;
+@autoName test bool _9c519042cdd0d61ec1024cec2cc5d721() = reduce(<s1, app("access", [val(("x": true, "y": 5, "z": "foo")), val("z")])>) == <s1, val("foo")> ;
 
 /*
  * Reduction: Pids
@@ -210,6 +221,23 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 @autoName test bool _fc4b1f646afa332cbe69ba93dd0d5e37() = reduce(<s1, app("concat", [val([5, 6]), val([])])>) == <s1, val([5, 6])> ;
 @autoName test bool _2d9914ad1a010b5d6a65f3c03ba0f158() = reduce(<s1, app("concat", [val([]), val([7])])>) == <s1, val([7])> ;
 @autoName test bool _0226fc3abb3b7f6b85a95d956375bae9() = reduce(<s1, app("concat", [val([]), val([])])>) == <s1, val([])> ;
+
+/*
+ * Reduction: Objects
+ */
+
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("object", args)>)
+    = <s, val((() | it + v | val(OBJECT v) <- args))> when !any(arg <- args, val(OBJECT _) !:= arg) ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("entry", [val(STRING k1), val(v1)])>)
+    = <s, val((k1: v1))> ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("spread", [val(OBJECT m)])>)
+    = <s, val(m)> ;
+
+@autoName test bool _f8ff0a3a2a1eda5510d2031093eea3fd() = reduce(<s1, app("entry", [val("x"), val(NULL)])>) == <s1, val(("x": NULL))> ;
+@autoName test bool _785194601d18494674ada47bbf867957() = reduce(<s1, app("spread", [val(("x": true, "y": 5, "z": "foo"))])>) == <s1, val(("x": true, "y": 5, "z": "foo"))> ;
+@autoName test bool _19d92c7c76e0f1475befa2a8667ed55c() = reduce(<s1, app("object", [])>) == <s1, val(())> ;
+@autoName test bool _9b95cbe60d6ff840c0cbc34303ffcca0() = reduce(<s1, app("object", [val(("x": NULL))])>) == <s1, val(("x": NULL))> ;
+@autoName test bool _3c4ce56082ccc34ce9d29e4613738a9e() = reduce(<s1, app("object", [val(("x": true)), val(("y": 5)), val(("z": "foo"))])>) == <s1, val(("x": true, "y": 5, "z": "foo"))> ;
 
 /* -------------------------------------------------------------------------- */
 /*                                 `foreach`                                  */

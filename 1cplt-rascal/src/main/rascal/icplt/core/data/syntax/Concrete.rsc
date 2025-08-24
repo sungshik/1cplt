@@ -10,45 +10,53 @@ syntax DataType
     | @category="keyword" "number"
     | @category="keyword" "string"
     | DataType [\[] [\]]
+    | [{] {DataTypeEntry [;]}* Semi? [}]
     ;
+
+syntax DataTypeEntry
+    = DataVariable [:] DataType ;
 
 lexical Role = @category="type" Upper Alnum* ;
 
 syntax DataExpression
-    = DataVariable
+    = "self"
+    | DataVariable
     | DataValue
-    | [\[] {DataExpression!comma ","}* [\]]
+    | [\[] {DataExpression!comma ","}* Comma? [\]]
+    | [{] {DataExpressionEntry ","}* Comma? [}]
     | DataExpression!comma "as" DataType
     | [(] DataExpression [)]
-    > DataExpression!comma [.] Length
+    > left DataExpression!comma [.] DataVariable
     | left DataExpression!comma [.] Concat [(] DataExpression!comma [)]
     > Prefix DataExpression!comma
     > right DataExpression!comma Exponentiation DataExpression!comma
-    > left  DataExpression!comma Multiplication DataExpression!comma
-    > left  DataExpression!comma Addition DataExpression!comma
-    > left  DataExpression!comma LessThan DataExpression!comma
-    > left  DataExpression!comma Equality DataExpression!comma
-    > left  DataExpression!comma LogicalConjunction DataExpression!comma
-    > left  DataExpression!comma LogicalDisjunction DataExpression!comma
+    > left DataExpression!comma Multiplication DataExpression!comma
+    > left DataExpression!comma Addition DataExpression!comma
+    > left DataExpression!comma LessThan DataExpression!comma
+    > left DataExpression!comma Equality DataExpression!comma
+    > left DataExpression!comma LogicalConjunction DataExpression!comma
+    > left DataExpression!comma LogicalDisjunction DataExpression!comma
     > right DataExpression!comma [?] DataExpression!comma [:] DataExpression!comma
     > left comma: DataExpression!comma "," {DataExpression!comma ","}+
     ;
 
-lexical Length             = @category="operator" "length" ;
+syntax DataExpressionEntry
+    = DataVariable [:] DataExpression!comma
+    | "..." DataExpression!comma
+    ;
+
 lexical Concat             = @category="operator" "concat" ;
-lexical Prefix             = @category="operator" [!+\-] ;
+lexical Prefix             = @category="operator" [! + \-] ;
 lexical Exponentiation     = @category="operator" "**" ;
-lexical Multiplication     = @category="operator" [*/%] ;
-lexical Addition           = @category="operator" [+\-] ;
+lexical Multiplication     = @category="operator" [* / %] ;
+lexical Addition           = @category="operator" [+ \-] ;
 lexical LessThan           = @category="operator" ("\<" | "\<=" | "\>" | "\>=") ;
 lexical Equality           = @category="operator" ("==" | "!=") ;
 lexical LogicalConjunction = @category="operator" "&&" ;
 lexical LogicalDisjunction = @category="operator" ("||" | "??") ;
 
 lexical DataVariable
-    = "self"
-    | @category="variable" (Lower Alnum*) !>> [0-9 A-Z a-z] \ DataKeyword
-    ;
+    = @category="variable" (Lower Alnum*) !>> [0-9 A-Z a-z] \ DataKeyword ;
 
 syntax DataValue
     = Pid
@@ -58,7 +66,7 @@ syntax DataValue
     | String
     ;
 
-syntax Pid
+lexical Pid
     = Role
     | Role [\[] Number [\]]
     ;
@@ -76,7 +84,7 @@ lexical Number
     = @category="number" Digit+ !>> [0-9] ;
 
 lexical String
-    = @category="string" [\"] Print* [\"] ;
+    = @category="string" [\"]( {(Print | "\\\"") !>> [\"] ()}* (Print | "\\\""))? [\"] ;
 
 keyword DataKeyword
     = "null"
