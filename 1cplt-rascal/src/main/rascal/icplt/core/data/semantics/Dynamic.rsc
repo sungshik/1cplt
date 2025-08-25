@@ -214,6 +214,36 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
     = <s, val([v | val(v) <- args])> when !any(arg <- args, !(arg is val));
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("concat", [val(ARRAY a1), val(ARRAY a2)])>)
     = <s, val(a1 + a2)> ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("slice", [val(ARRAY a), val(NUMBER n1)])>)
+    = <s, val(slice(a, n1, size(a)))> ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("slice", [val(ARRAY a), val(NUMBER n1), val(NUMBER n2)])>)
+    = <s, val(slice(a, n1, n2))> ;
+
+private list[value] slice(list[value] l, int begin, int end) {
+    length = size(l);
+    
+    if (begin < -length) {
+        begin = 0; // Inside
+    } else if (-length <= begin && begin < 0) {
+        begin += length; // Inside
+    } else if (0 <= begin && begin < length) {
+        ; // Inside
+    } else if (length <= begin) {
+        ; // Outside
+    }
+
+    if (end < -length) {
+        end = 0; // Inside
+    } else if (-length <= end && end < 0) {
+        end += length; // Inside
+    } else if (0 <= end && end < length) {
+        ; // Inside
+    } else if (length <= end) {
+        ; // Outside
+    }
+
+    return begin < end ? l[begin..end] : [];
+}
 
 @autoName test bool _b983cb0aac3304d3ddd3e05de68b0315() = reduce(<s1, app("array", [])>) == <s1, val([])> ;
 @autoName test bool _f8ff5932d2e9881e94b4421ddfa133db() = reduce(<s1, app("array", [val(5), val(6), val(7)])>) == <s1, val([5, 6, 7])> ;
@@ -221,6 +251,13 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 @autoName test bool _fc4b1f646afa332cbe69ba93dd0d5e37() = reduce(<s1, app("concat", [val([5, 6]), val([])])>) == <s1, val([5, 6])> ;
 @autoName test bool _2d9914ad1a010b5d6a65f3c03ba0f158() = reduce(<s1, app("concat", [val([]), val([7])])>) == <s1, val([7])> ;
 @autoName test bool _0226fc3abb3b7f6b85a95d956375bae9() = reduce(<s1, app("concat", [val([]), val([])])>) == <s1, val([])> ;
+@autoName test bool _464a3b35c74a3a53bf92e5e7cb136fe6() = reduce(<s1, app("slice", [val([]), val(1)])>) == <s1, val([])> ;
+@autoName test bool _83c911dcb9fab63c6e5e95307f5b7531() = reduce(<s1, app("slice", [val([]), val(1), val(2)])>) == <s1, val([])> ;
+@autoName test bool _314807614235b08e2b53a5972f829023() = reduce(<s1, app("slice", [val(["ant", "bison", "camel", "duck", "elephant"]), val(2)])>) == <s1, val(["camel", "duck", "elephant"])> ;
+@autoName test bool _44f6cd163bdeb4cf1f4d0627fc6d08cf() = reduce(<s1, app("slice", [val(["ant", "bison", "camel", "duck", "elephant"]), val(2), val(4)])>) == <s1, val(["camel", "duck"])> ;
+@autoName test bool _a76cc1f5bb3803478d33d60ee5dca819() = reduce(<s1, app("slice", [val(["ant", "bison", "camel", "duck", "elephant"]), val(1), val(5)])>) == <s1, val(["bison", "camel", "duck", "elephant"])> ;
+@autoName test bool _fdd7efecc04e3cd5047de9c61d23beb8() = reduce(<s1, app("slice", [val(["ant", "bison", "camel", "duck", "elephant"]), val(-2)])>) == <s1, val(["duck", "elephant"])> ;
+@autoName test bool _05ae3d963f847a86d23e3fb614c19670() = reduce(<s1, app("slice", [val(["ant", "bison", "camel", "duck", "elephant"]), val(2), val(-1)])>) == <s1, val(["camel", "duck"])> ;
 
 /*
  * Reduction: Objects

@@ -117,6 +117,10 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<DataVariabl
     : app("access", [toAbstract(e1), val(toAbstract(x)) [src = x.src]]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Concat _>(<DataExpression e2>)`)
     = app("concat", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
+DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Slice _>(<DataExpression e2>)`)
+    = app("slice", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
+DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Slice _>(<DataExpression e2>, <DataExpression e3>)`)
+    = app("slice", [toAbstract(e1), toAbstract(e2), toAbstract(e3)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<Prefix f> <DataExpression e1>`)
     = app("<f>", [toAbstract(e1)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1> <Exponentiation f> <DataExpression e2>`)
@@ -162,6 +166,8 @@ DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `...<DataExpression e1>`)
 @autoName test bool _7b02dfcf7e6daba8fbd6c23fadf4e4a3() = compare(toAbstract(parse(#DataExpression, "(5)")), val(5)) ;
 @autoName test bool _600f0dc1ec014a70c64c038c8d3e6a4a() = compare(toAbstract(parse(#DataExpression, "[].length")), app("length", [app("array", [])])) ;
 @autoName test bool _a514539a6e7ad6d00e704e3bacb3b524() = compare(toAbstract(parse(#DataExpression, "[].concat([])")), app("concat", [app("array", []), app("array", [])])) ;
+@autoName test bool _355ee94ded2debe464c0b101b390d20a() = compare(toAbstract(parse(#DataExpression, "[].slice(1)")), app("slice", [app("array", []), val(1)])) ;
+@autoName test bool _dd8b5a69d3ed9de5625944a2c853028f() = compare(toAbstract(parse(#DataExpression, "[].slice(1, 3)")), app("slice", [app("array", []), val(1), val(3)])) ;
 @autoName test bool _965ddfa2546d3d0aee80ca845419158a() = compare(toAbstract(parse(#DataExpression, "{}.x")), app("access", [app("object", []), val("x")])) ;
 @autoName test bool _0ebc5fa5150a5256633ff258ecca1fc1() = compare(toAbstract(parse(#DataExpression, "!true")), app("!", [val(true)])) ;
 @autoName test bool _daf49fbc90c589f929a03dbbd0a0685a() = compare(toAbstract(parse(#DataExpression, "5 ** 6")), app("**", [val(5), val(6)])) ;
