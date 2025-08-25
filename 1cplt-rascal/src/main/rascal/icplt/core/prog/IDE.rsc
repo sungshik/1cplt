@@ -1,5 +1,7 @@
 module icplt::core::\prog::IDE
 
+import IO;
+
 import Map;
 import Message;
 import ParseTree;
@@ -87,13 +89,14 @@ void executionService(simulate(PROG_EXPRESSION e, set[PID] pids)) {
         s = state({alt});
     }
 
+    int threshold = 1000;
     int n = 0;
     tuple[PROG_STATE, PROG_EXPRESSION] initial = <s, e>;
     tuple[PROG_STATE, PROG_EXPRESSION] final   = initial;
     tuple[PROG_STATE, PROG_EXPRESSION] source  = <state({getOneFrom(initial<0>.alts)}), e>;
-    for (int i <- [1..1000]) {
+    for (int i <- [1..threshold + 1]) {
         tuple[PROG_STATE, PROG_EXPRESSION] target = reduce(source);
-        if (source == target) {
+        if (source == target || i == threshold) {
             n = i;
             final = target;
             break;
@@ -135,7 +138,7 @@ void executionService(simulate(PROG_EXPRESSION e, set[PID] pids)) {
         '
         '<toPlainText(initial)>
         '
-        '## Final state (after <n> reductions)
+        '## Final state (after <n> reductions)<n == threshold ? " -- out of fuel" : "">
         '
         '<toPlainText(final)>
         '
