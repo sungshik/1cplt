@@ -314,7 +314,7 @@ list[Message] check(DATA_TYPE _: boolean(), DATA_CONTEXT _, DATA_EXPRESSION _: v
 list[Message] check(DATA_TYPE _: boolean(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1]))
     = check(boolean(), c, e1) when f in {"!"};
 list[Message] check(DATA_TYPE _: boolean(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1, e2]))
-    = check(number(), c, e1) + check(number(), c, e2) when f in {"\<", "\<=", "\<", "\>="} ;
+    = check(number(), c, e1) + check(number(), c, e2) when f in {"\<", "\<=", "\>", "\>="} ;
 list[Message] check(DATA_TYPE _: boolean(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1, e2]))
     = check(boolean(), c, e1) + check(boolean(), c, e2) when f in {"&&", "||"} ;
 list[Message] check(DATA_TYPE _: boolean(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1, e2]))
