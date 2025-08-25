@@ -87,7 +87,7 @@ lexical Number
     = @category="number" Digit+ !>> [0-9] ;
 
 lexical String
-    = @category="string" [\"]( {(Print | "\\\"") !>> [\"] ()}* (Print | "\\\""))? [\"] ;
+    = @category="string" [\"] ({Print !>> [\"] ()}* Print)? [\"] ;
 
 keyword DataKeyword
     = "null"
