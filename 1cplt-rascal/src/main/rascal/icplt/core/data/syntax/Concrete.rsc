@@ -16,7 +16,7 @@ syntax DataType
 syntax DataTypeEntry
     = DataVariable [:] DataType ;
 
-lexical Role = @category="type" Upper Alnum* ;
+lexical Role = @category="type" [@] Alnum+ ;
 
 syntax DataExpression
     = "self"

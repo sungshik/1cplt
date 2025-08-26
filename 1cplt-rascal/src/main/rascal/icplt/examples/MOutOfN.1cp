@@ -1,7 +1,7 @@
-global Prod(ok: boolean)
+global @prod(ok: boolean)
 {
   main:
-    self -> Cons.p |>
+    self -> @cons.p |>
       if
         ps.length < m
       then
@@ -11,11 +11,11 @@ global Prod(ok: boolean)
         false -> p.ok
 }
 
-global Cons(p: Prod, ps: Prod[], m: number)
+global @cons(p: @prod, ps: @prod[], m: number)
 
-process Prod[1](false)
-process Prod[2](false)
-process Prod[3](false)
-process Cons(Prod[1], [], 2)
-//           ^^^^^^^
-//           Dummy initial value
+process @prod[1](false)
+process @prod[2](false)
+process @prod[3](false)
+process @cons(@prod[1], [], 2)
+//            ^^^^^^^^
+//            Dummy initial value

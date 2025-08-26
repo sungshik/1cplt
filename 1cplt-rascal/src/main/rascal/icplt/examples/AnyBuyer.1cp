@@ -1,21 +1,21 @@
-global B1(x, f: number, neigh: Bi)
+global @buyer1(x, f: number, neigh: @buyeri)
 {
   main:
-    "foo" -> S.title |> {
-      123 -> B1.x |> {
+    "foo" -> @seller.title |> {
+      123 -> @buyer1.x |> {
         (x / f) -> neigh.y |>
           contrib
       } ;
-      foreach<Bi> n in neighs do
+      foreach<@buyeri> n in neighs do
         123 -> n.x |>
           contrib
     }
 }
 
-global Bi(
+global @buyeri(
   x, y, f: number,
   last: boolean,
-  neigh: Bi)
+  neigh: @buyeri)
 {
   contrib:
     if
@@ -24,19 +24,19 @@ global Bi(
       if
         last
       then
-        (x - y < x / f) -> S.result
+        (x - y < x / f) -> @seller.result
       else
         (x / f + y) -> neigh.y |> contrib
     }
 }
 
-global S(
+global @seller(
   title: string,
   result: boolean,
-  neighs: Bi[])
+  neighs: @buyeri[])
 
-process B1(0, 3, Bi[2])
-process Bi[2](0, 0, 5, false, Bi[3])
-process Bi[3](0, 0, 8, false, Bi[4])
-process Bi[4](0, 0, 2, true, Bi[4])
-process S("", false, [Bi[2], Bi[3], Bi[4]])
+process @buyer1(0, 3, @buyeri[2])
+process @buyeri[2](0, 0, 5, false, @buyeri[3])
+process @buyeri[3](0, 0, 8, false, @buyeri[4])
+process @buyeri[4](0, 0, 2, true, @buyeri[4])
+process @seller("", false, [@buyeri[2], @buyeri[3], @buyeri[4]])

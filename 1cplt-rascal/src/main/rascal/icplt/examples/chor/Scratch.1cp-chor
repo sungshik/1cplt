@@ -1,4 +1,4 @@
-Alice[5].{
+@alice[5].{
 
   // Assignment
   n1 := 3 ;
@@ -6,15 +6,15 @@ Alice[5].{
   n1 := n123 ;
 
   // Communication
-  false -> Bob.b1 |> {
+  false -> @bob.b1 |> {
 
     // Choice
     if
       !b3 == false
     then
-      123 -> Carol[9].n2
+      123 -> @carol[9].n2
     else
-      7*8 -> Alice.n3 ;
+      7*8 -> @alice.n3 ;
 
     // Loop
     while
