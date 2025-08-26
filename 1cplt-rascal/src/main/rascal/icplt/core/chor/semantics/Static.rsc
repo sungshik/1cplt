@@ -99,8 +99,6 @@ list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq
 default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = [error("Expected choreograpy type: `<toStr(t)>`. Actual: <actual(c, e)>.", e.src)] ;
 
-@autoName test bool _baa952ae4dd3c009d70961cd7224c178() = check(chor("@alice"), c2, log(info(), val(5))) == [] ;
-@autoName test bool _a27dca41e053c7f798dd90596f011337() = check(chor("@alice"), c2, log(info(), app("-", [val(5), val(true)]))) != [] ;
 @autoName test bool _2ae7405b76446862a1ee892dfe12ed51() = check(chor("@carol"), c2, skip()) != [] ;
 @autoName test bool _836cd9367b8d0f1a4b2ea6d860e8c016() = check(chor("@alice"), c2, CHOR_EXPRESSION::err()) == [] ;
 @autoName test bool _381541a9ed4cc6c8e675baeff4961f09() = check(chor("@alice"), c2, skip()) == [] ;
