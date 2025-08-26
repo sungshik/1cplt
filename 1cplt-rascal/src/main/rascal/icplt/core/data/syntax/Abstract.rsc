@@ -114,7 +114,7 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `(<DataExpression e1>)`)
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<DataVariable x>`)
     = "length" == toAbstract(x)
     ? app("length", [toAbstract(e1)]) [src = e.src]
-    : app("access", [toAbstract(e1), val(toAbstract(x)) [src = x.src]]) [src = e.src] ;
+    : app("oaccess", [toAbstract(e1), val(toAbstract(x)) [src = x.src]]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Concat _>(<DataExpression e2>)`)
     = app("concat", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Slice _>(<DataExpression e2>)`)
@@ -168,7 +168,7 @@ DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `...<DataExpression e1>`)
 @autoName test bool _a514539a6e7ad6d00e704e3bacb3b524() = compare(toAbstract(parse(#DataExpression, "[].concat([])")), app("concat", [app("array", []), app("array", [])])) ;
 @autoName test bool _355ee94ded2debe464c0b101b390d20a() = compare(toAbstract(parse(#DataExpression, "[].slice(1)")), app("slice", [app("array", []), val(1)])) ;
 @autoName test bool _dd8b5a69d3ed9de5625944a2c853028f() = compare(toAbstract(parse(#DataExpression, "[].slice(1, 3)")), app("slice", [app("array", []), val(1), val(3)])) ;
-@autoName test bool _965ddfa2546d3d0aee80ca845419158a() = compare(toAbstract(parse(#DataExpression, "{}.x")), app("access", [app("object", []), val("x")])) ;
+@autoName test bool _bcd43a547a8e2cee387d7d43d6e1b3b3() = compare(toAbstract(parse(#DataExpression, "{}.x")), app("oaccess", [app("object", []), val("x")])) ;
 @autoName test bool _0ebc5fa5150a5256633ff258ecca1fc1() = compare(toAbstract(parse(#DataExpression, "!true")), app("!", [val(true)])) ;
 @autoName test bool _daf49fbc90c589f929a03dbbd0a0685a() = compare(toAbstract(parse(#DataExpression, "5 ** 6")), app("**", [val(5), val(6)])) ;
 @autoName test bool _bf4f9d63fce32cdf03637f45bbeed78e() = compare(toAbstract(parse(#DataExpression, "5 ** 6 ** 7")), app("**", [val(5), app("**", [val(6), val(7)])])) ;
@@ -212,7 +212,7 @@ str toStr(DATA_EXPRESSION _: val(v)) {
 str toStr(DATA_EXPRESSION _: asc(e1, t))
     = "<toStr(e1)> as <toStr(t)>" ;
 str toStr(DATA_EXPRESSION _: app(f, args))
-    = "access" == f
+    = "oaccess" == f
     ? "<toStr(args[0])>.<args[1].v>"
     : "<f>(<intercalate(", ", [toStr(arg) | arg <- args])>)" ;
 
