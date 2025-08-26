@@ -84,7 +84,7 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("access", [e1, val
 Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: val(PID _: <r, _>))
     = just(pid(r)) ;
 
-@autoName test bool _070f69047be4b36d059aa1f6f6cb8f0f() = infer(c1, val(<"@alice", 5>)) == just(pid("@alice")) ;
+@autoName test bool _9befaeac61a01195169e828e5a58404f() = infer(c1, val(<"@alice", 5>)) == just(pid("@alice")) ;
 
 /*
  * Inference: Null
@@ -293,8 +293,8 @@ list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("access"
 list[Message] check(DATA_TYPE _: pid(r), DATA_CONTEXT _, DATA_EXPRESSION _: val(PID _: <r, _>))
     = [] ;
 
-@autoName test bool _c7000bd51e50018191553bb09a993a56() = check(pid("@alice"), c1, val(<"@alice", 5>)) == [] ;
-@autoName test bool _57de2a703110c19f7895e12f61f038c0() = check(pid("@alice"), c1, val(<"@bob", 5>)) != [] ;
+@autoName test bool _1a5985bc1abdc9dfbe8d4cf57ab55aa8() = check(pid("@alice"), c1, val(<"@alice", 5>)) == [] ;
+@autoName test bool _d83acabc078ecadeb37779e8755bbc11() = check(pid("@alice"), c1, val(<"@bob", 5>)) != [] ;
 
 /*
  * Checking: Null

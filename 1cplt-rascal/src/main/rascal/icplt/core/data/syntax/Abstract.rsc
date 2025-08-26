@@ -39,12 +39,12 @@ DATA_TYPE toAbstract(t: (DataType) `{<{DataTypeEntry [;]}* entries> <Semi? _>}`)
 map[str, DATA_TYPE] toAbstract((DataTypeEntry) `<DataVariable x>: <DataType t>`)
     = (toAbstract(x): toAbstract(t)) ;
 
-@autoName test bool _e4027c89195dca169cfbb62416d3c793() = compare(toAbstract(parse(#DataType, "@alice")), pid("@alice")) ;
+@autoName test bool _e6c034d7f37affa172871000709b26f5() = compare(toAbstract(parse(#DataType, "@alice")), pid("@alice")) ;
 @autoName test bool _d9c976d5ed72c5282ddf84c790a1afe6() = compare(toAbstract(parse(#DataType, "null")), null()) ;
 @autoName test bool _0a93b0b9c2d39a22932d9dd656993d89() = compare(toAbstract(parse(#DataType, "boolean")), boolean()) ;
 @autoName test bool _373b4061a87dec183ffbb6a85d876170() = compare(toAbstract(parse(#DataType, "number")), number()) ;
 @autoName test bool _0e6104dbfdda78c0112651dec61943be() = compare(toAbstract(parse(#DataType, "string")), string()) ;
-@autoName test bool _5607ca24fef95cb3831002e150aedfb1() = compare(toAbstract(parse(#DataType, "@alice[]")), array(pid("@alice"))) ;
+@autoName test bool _27ac1aed2829c62b99d2d00561750185() = compare(toAbstract(parse(#DataType, "@alice[]")), array(pid("@alice"))) ;
 @autoName test bool _381e655c36fd1ed03721f53f2eccc2dd() = compare(toAbstract(parse(#DataType, "{}")), object(())) ;
 @autoName test bool _446785b9191c5c4293c88ed0f9857f05() = compare(toAbstract(parse(#DataType, "{x: null}")), object(("x": null()))) ;
 @autoName test bool _2e1c61445f4038397e0d22f162f29cd5() = compare(toAbstract(parse(#DataType, "{x: boolean; y: number; z: string}")), object(("x": boolean(), "y": number(), "z": string()))) ;
@@ -66,12 +66,12 @@ str toStr(DATA_TYPE _: array(t1))
 str toStr(DATA_TYPE _: object(entries))
     = "{<intercalate("; ", ["<k>: <toStr(entries[k])>" | k <- entries])>}" ;
 
-@autoName test bool _fb052164acb12c42fa08d995f5b484f0() = toStr(pid("@alice")) == "@alice" ;
+@autoName test bool _1bed5ae90f396bd132e7764db2a3db55() = toStr(pid("@alice")) == "@alice" ;
 @autoName test bool _f787b28bb88a382139a33049e967d220() = toStr(null()) == "null" ;
 @autoName test bool _61a689820a66fc089ed489d05f3ea59c() = toStr(boolean()) == "boolean" ;
 @autoName test bool _217a5b39e204f39db3febea0a8db2767() = toStr(number()) == "number" ;
 @autoName test bool _63a6c34e376f45f4fe884b4314d2dc14() = toStr(string()) == "string" ;
-@autoName test bool _5ab6d8d20f90ebe5215f66fb8925b800() = toStr(array(pid("@alice"))) == "@alice[]" ;
+@autoName test bool _d6bcfc91038166dbd3fadfca07817055() = toStr(array(pid("@alice"))) == "@alice[]" ;
 @autoName test bool _eed6512788df0ae2cdf870c2a1350ee0() = toStr(array(array(array(null())))) == "null[][][]" ;
 
 /*
@@ -83,7 +83,7 @@ alias ROLE = str;
 ROLE toAbstract(r: (Role) _)
     = "<r>";
 
-@autoName test bool _25edf7828fe83bf157da88c98fca6197() = toAbstract(parse(#Role, "@alice")) == "@alice" ;
+@autoName test bool _bd8e3680238a92336cfb4e26db3e37f4() = toAbstract(parse(#Role, "@alice")) == "@alice" ;
 
 /*
  * Expressions
@@ -217,8 +217,8 @@ str toStr(DATA_EXPRESSION _: app(f, args))
     : "<f>(<intercalate(", ", [toStr(arg) | arg <- args])>)" ;
 
 @autoName test bool _316445d34c4db4cc504f8205ee83b07a() = toStr(var("x")) == "x" ;
-@autoName test bool _492da7b22b5dd03e48c81b62560c61bc() = toStr(val(<"@alice", 0>)) == "@alice" ;
-@autoName test bool _eb718d61e781e3b84bbce04425a0d90f() = toStr(val(<"@alice", 5>)) == "@alice[5]" ;
+@autoName test bool _cd6ce612e38a2423bf35edfd6bb18e44() = toStr(val(<"@alice", 0>)) == "@alice" ;
+@autoName test bool _0954b4ecad838ab7088856dea1e4e2a8() = toStr(val(<"@alice", 5>)) == "@alice[5]" ;
 @autoName test bool _022552671b43152ed15663fb6f487468() = toStr(val(NULL)) == "null" ;
 @autoName test bool _2b33d3d631e1e3eb41230baaca897189() = toStr(val(true)) == "true" ;
 @autoName test bool _eb8ec484d6e5f60a78dc2c0e4b9e7715() = toStr(asc(val(5), number())) == "5 as number" ;
@@ -255,8 +255,8 @@ PID toAbstract((Pid) `<Role r>`)
 PID toAbstract((Pid) `<Role r>[<Number k>]`)
     = <toAbstract(r), toAbstract(k)> ;
 
-@autoName test bool _c1fed0d78bd3e0cc0da4c42f5d6b50de() = toAbstract(parse(#Pid, "@alice")) == <"@alice", 0> ;
-@autoName test bool _660402f4bfe9f0586e7ecbb8d9a75bff() = toAbstract(parse(#Pid, "@alice[5]")) == <"@alice", 5> ;
+@autoName test bool _b1913042f35522a568697c28e54b23de() = toAbstract(parse(#Pid, "@alice")) == <"@alice", 0> ;
+@autoName test bool _29cda6b45e6e49e01e59467e119e984e() = toAbstract(parse(#Pid, "@alice[5]")) == <"@alice", 5> ;
 
 /*
  * Values: Null

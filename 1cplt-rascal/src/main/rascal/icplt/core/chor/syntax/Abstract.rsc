@@ -16,7 +16,7 @@ data CHOR_TYPE(loc src = |unknown:///|)
 CHOR_TYPE toAbstract(t: (ChorType) `chor[<Role r>]`)
     = chor(toAbstract(r)) [src = t.src] ;
 
-@autoName test bool _956a4c119d4888fea9c5d7e720428c13() = compare(toAbstract(parse(#ChorType, "chor[@alice]")), chor("@alice")) ;
+@autoName test bool _61f5af77450c87ce1bf454637d70502e() = compare(toAbstract(parse(#ChorType, "chor[@alice]")), chor("@alice")) ;
 
 str toStr(CHOR_TYPE _: chor(r))
     = "chor[<r>]" ;
@@ -60,15 +60,15 @@ CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<ChorExpression e1> ; <ChorExpre
 
 @autoName test bool _85e62f21d42a95037af721f8390a397c() = compare(toAbstract(parse(#ChorExpression, "main")), CHOR_EXPRESSION::var("main")) ;
 @autoName test bool _1328850d06a0378af47fff5936681b1a() = compare(toAbstract(parse(#ChorExpression, "i := 5")), asgn("i", val(5))) ;
-@autoName test bool _66f6185e3d96371a1c7fd9c6df62b165() = compare(toAbstract(parse(#ChorExpression, "5 -\> @alice[5].i")), comm(val(5), val(<"@alice", 5>), "i", skip())) ;
-@autoName test bool _463cbe92deb6136e7009654766725813() = compare(toAbstract(parse(#ChorExpression, "{ 5 -\> @alice[5].i }")), comm(val(5), val(<"@alice", 5>), "i", skip())) ;
-@autoName test bool _cefa39758c7592871c130010e023690f() = compare(toAbstract(parse(#ChorExpression, "5 -\> @alice[5].i |\> main")), comm(val(5), val(<"@alice", 5>), "i", CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _ce1f6976ad7ad1e5946204ae003902fc() = compare(toAbstract(parse(#ChorExpression, "5 -\> @alice[5].i")), comm(val(5), val(<"@alice", 5>), "i", skip())) ;
+@autoName test bool _0e48a5060deeb36a33cfa45c9070db2b() = compare(toAbstract(parse(#ChorExpression, "{ 5 -\> @alice[5].i }")), comm(val(5), val(<"@alice", 5>), "i", skip())) ;
+@autoName test bool _c7784de5275d78a75b28a65dc255ffc8() = compare(toAbstract(parse(#ChorExpression, "5 -\> @alice[5].i |\> main")), comm(val(5), val(<"@alice", 5>), "i", CHOR_EXPRESSION::var("main"))) ;
 @autoName test bool _4e0d3edbb044868d875c7b535d873e98() = compare(toAbstract(parse(#ChorExpression, "if true then main")), choice(val(true), CHOR_EXPRESSION::var("main"), skip())) ;
 @autoName test bool _8840c5b90650b448682e7016edbb56eb() = compare(toAbstract(parse(#ChorExpression, "if true then main else main")), choice(val(true), CHOR_EXPRESSION::var("main"), CHOR_EXPRESSION::var("main"))) ;
 @autoName test bool _a269925b6bfaf8b43f069b770135c3b5() = compare(toAbstract(parse(#ChorExpression, "while (true) do main")), loop(val(true), CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _e6331f2c9d81a2635ef7678e4cefd60f() = compare(toAbstract(parse(#ChorExpression, "@alice[5].main")), at(val(<"@alice", 5>), CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _264bf3d7d21c07e752b8607c1ec18895() = compare(toAbstract(parse(#ChorExpression, "@alice[5].if true then main")), at(val(<"@alice", 5>), choice(val(true), CHOR_EXPRESSION::var("main"), skip()))) ;
-@autoName test bool _c680d5819eb7d17fd8e9e517be62c115() = compare(toAbstract(parse(#ChorExpression, "@alice[5].main; main")), seq(at(val(<"@alice", 5>), CHOR_EXPRESSION::var("main")), CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _62e0972a0b0e76766e3a1f5dc209e14a() = compare(toAbstract(parse(#ChorExpression, "@alice[5].main")), at(val(<"@alice", 5>), CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _e6b85c872761d6dd0c6c1c46f2e0ee83() = compare(toAbstract(parse(#ChorExpression, "@alice[5].if true then main")), at(val(<"@alice", 5>), choice(val(true), CHOR_EXPRESSION::var("main"), skip()))) ;
+@autoName test bool _2f3444469f3a8dab859669838f44105a() = compare(toAbstract(parse(#ChorExpression, "@alice[5].main; main")), seq(at(val(<"@alice", 5>), CHOR_EXPRESSION::var("main")), CHOR_EXPRESSION::var("main"))) ;
 @autoName test bool _da529655dc56a30531a2d787577af216() = compare(toAbstract(parse(#ChorExpression, "main; main")), seq(CHOR_EXPRESSION::var("main"), CHOR_EXPRESSION::var("main"))) ;
 @autoName test bool _9613f73106037251bb6d970586fde8df() = compare(toAbstract(parse(#ChorExpression, "main; main; main")), seq(seq(CHOR_EXPRESSION::var("main"), CHOR_EXPRESSION::var("main")), CHOR_EXPRESSION::var("main"))) ;
 
