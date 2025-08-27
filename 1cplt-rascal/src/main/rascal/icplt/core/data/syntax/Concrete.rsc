@@ -18,7 +18,7 @@ syntax DataType
 syntax DataTypeEntry
     = DataVariable [:] DataType ;
 
-lexical Role = @category="type" [@] Alnum+ ;
+lexical Role = @category="type" [@] (Alpha (Alnum | [_])*) !>> [0-9 A-Z a-z _] ;
 
 syntax DataExpression
     = "self"
@@ -62,7 +62,7 @@ lexical LogicalConjunction = @category="operator" "&&" ;
 lexical LogicalDisjunction = @category="operator" ("||" | "??") ;
 
 lexical DataVariable
-    = @category="variable" (Lower Alnum*) !>> [0-9 A-Z a-z] \ DataKeyword ;
+    = @category="variable" (Alpha (Alnum | [_])*) !>> [0-9 A-Z a-z _] \ DataKeyword ;
 
 syntax DataValue
     = Pid
