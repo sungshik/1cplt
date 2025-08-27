@@ -36,6 +36,8 @@ tuple[CHOR_STATE, CHOR_EXPRESSION] normalize(tuple[CHOR_STATE, CHOR_EXPRESSION] 
  * Reduction
  */
 
+tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION e: log(_, _)>)
+    = <s, e> ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION e: CHOR_EXPRESSION::err()>)
     = <s, e> ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION e: skip()>)

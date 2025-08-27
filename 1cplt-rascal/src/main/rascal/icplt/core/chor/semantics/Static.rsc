@@ -66,6 +66,8 @@ default Maybe[CHOR_TYPE] infer(CHOR_CONTEXT _, CHOR_EXPRESSION _)
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = [error("Unexpected name `<p>`", e.src)] when !inContext(p, c) ;
 
+list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION _: log(_, eData))
+    = analyze(context(c.gammas[p]), eData) when inContext(p, c) ;
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION _: CHOR_EXPRESSION::err())
     = [] when inContext(p, c) ;
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION _: skip())
@@ -99,6 +101,8 @@ list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq
 default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = [error("Expected choreograpy type: `<toStr(t)>`. Actual: <actual(c, e)>.", e.src)] ;
 
+@autoName test bool _baa952ae4dd3c009d70961cd7224c178() = check(chor("@alice"), c2, log(info(), val(5))) == [] ;
+@autoName test bool _a27dca41e053c7f798dd90596f011337() = check(chor("@alice"), c2, log(info(), app("-", [val(5), val(true)]))) != [] ;
 @autoName test bool _d8f3d2ca09ff1d772a7da01ddc8b2eb3() = check(chor("@carol"), c2, skip()) != [] ;
 @autoName test bool _99b29139a064808f492eea2834015a52() = check(chor("@alice"), c2, CHOR_EXPRESSION::err()) == [] ;
 @autoName test bool _962e53d57a4937b425486ac7220b6f21() = check(chor("@alice"), c2, skip()) == [] ;

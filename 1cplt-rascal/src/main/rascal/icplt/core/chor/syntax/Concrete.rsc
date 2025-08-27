@@ -9,7 +9,8 @@ syntax ChorType
     ;
 
 syntax ChorExpression
-    = ChorVariable
+    = Log "(" DataExpression ")"
+    | ChorVariable
     | DataVariable ":=" DataExpression
     | DataExpression "-\>" DataExpression "." DataVariable
     | "{" ChorExpression "}"
@@ -19,6 +20,12 @@ syntax ChorExpression
     | "while" DataExpression "do" ChorExpression
     > DataExpression "." ChorExpression
     > left seq: ChorExpression ";" ChorExpression
+    ;
+
+lexical Log
+    = @category="keyword" "\\info"
+    | @category="keyword" "\\warn"
+    | @category="keyword" "\\error"
     ;
 
 lexical ChorVariable
