@@ -100,6 +100,9 @@ list[InlayHint] inlayHintService(CHOR_EXPRESSION e, str name = "self") {
 
     list[InlayHint] hints = [];
     top-down-break visit (e) {
+        case CHOR_EXPRESSION _: log(_, eData): {
+            hints += toHints(eData, label);
+        }
         case CHOR_EXPRESSION e: var(_): {
             hints += toHints(e, label);
         }
@@ -126,12 +129,12 @@ list[InlayHint] inlayHintService(CHOR_EXPRESSION e, str name = "self") {
     return [hint | hint <- hints, "unknown" != hint.position.scheme];
 }
 
-str toLabel(str _: /^<name:[0-9A-Za-z]+>$/)
+str toLabel(str _: /^<name:[@0-9A-Za-z.]+>$/)
     = "<name>." ;
 
 /* -------------------------------------------------------------------------- */
 /*                                 `foreach`                                  */
 /* -------------------------------------------------------------------------- */
 
-str toLabel(str _: /^\(foreach\<[0-9A-Za-z]+\> <name:[0-9A-Za-z]+>, [0-9]*\).elem$/)
+str toLabel(str _: /^\(foreach\<[@0-9A-Za-z]+\> <name:[0-9A-Za-z]+>, [0-9]*\).elem$/)
     = "<name>." ;

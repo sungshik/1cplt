@@ -9,14 +9,16 @@ syntax DataType
     | @category="keyword" "boolean"
     | @category="keyword" "number"
     | @category="keyword" "string"
-    | DataType [\[] [\]]
+    | left DataType!union [\[] [\]]
     | [{] {DataTypeEntry [;]}* Semi? [}]
+    | [(] DataType [)]
+    > left union: DataType!union [|] {DataType!union [|]}+
     ;
 
 syntax DataTypeEntry
     = DataVariable [:] DataType ;
 
-lexical Role = @category="type" Upper Alnum* ;
+lexical Role = @category="type" [@] (Alpha (Alnum | [_])*) !>> [0-9 A-Z a-z _] ;
 
 syntax DataExpression
     = "self"
@@ -28,6 +30,9 @@ syntax DataExpression
     | [(] DataExpression [)]
     > left DataExpression!comma [.] DataVariable
     | left DataExpression!comma [.] Concat [(] DataExpression!comma [)]
+    | left DataExpression!comma [.] Slice [(] DataExpression!comma [)]
+    | left DataExpression!comma [.] Slice [(] DataExpression!comma [,] DataExpression!comma [)]
+    | () !>> [@] DataExpression!comma [\[] DataExpression!comma [\]]
     > Prefix DataExpression!comma
     > right DataExpression!comma Exponentiation DataExpression!comma
     > left DataExpression!comma Multiplication DataExpression!comma
@@ -46,6 +51,7 @@ syntax DataExpressionEntry
     ;
 
 lexical Concat             = @category="operator" "concat" ;
+lexical Slice              = @category="operator" "slice" ;
 lexical Prefix             = @category="operator" [! + \-] ;
 lexical Exponentiation     = @category="operator" "**" ;
 lexical Multiplication     = @category="operator" [* / %] ;
@@ -56,7 +62,7 @@ lexical LogicalConjunction = @category="operator" "&&" ;
 lexical LogicalDisjunction = @category="operator" ("||" | "??") ;
 
 lexical DataVariable
-    = @category="variable" (Lower Alnum*) !>> [0-9 A-Z a-z] \ DataKeyword ;
+    = @category="variable" (Alpha (Alnum | [_])*) !>> [0-9 A-Z a-z _] \ DataKeyword ;
 
 syntax DataValue
     = Pid
@@ -84,7 +90,7 @@ lexical Number
     = @category="number" Digit+ !>> [0-9] ;
 
 lexical String
-    = @category="string" [\"]( {(Print | "\\\"") !>> [\"] ()}* (Print | "\\\""))? [\"] ;
+    = @category="string" [\"] ({Print !>> [\"] ()}* Print)? [\"] ;
 
 keyword DataKeyword
     = "null"

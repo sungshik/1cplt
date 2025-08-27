@@ -25,9 +25,9 @@ PROG_EXPRESSION toAbstract(e: (ProgExpression) `<Process _>`)
 PROG_EXPRESSION toAbstract(e: (ProgExpression) `<ProgExpression e1> <ProgExpression e2>`)
     = seq(toAbstract(e1), toAbstract(e2)) [src = e.src] ;
 
-@autoName test bool _ebeb82900a28c876646747d776133055() = compare(toAbstract(parse(#ProgExpression, "global Alice()")), glob("Alice", [], [proced("main", skip())])) ;
-@autoName test bool _ed6699be93ab74b06db4fb8d79526be6() = compare(toAbstract(parse(#ProgExpression, "process Alice[5]()")), proc(<"Alice", 5>, [], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _f684eaffa84eda8f75a9e5091e296e91() = compare(toAbstract(parse(#ProgExpression, "global Alice() global Bob() global Carol()")), seq(seq(glob("Alice", [], [proced("main", skip())]), glob("Bob", [], [proced("main", skip())])), glob("Carol", [], [proced("main", skip())]))) ;
+@autoName test bool _e5df19b9a8ef06e5a14f8c62b349a21e() = compare(toAbstract(parse(#ProgExpression, "global @alice()")), glob("@alice", [], [proced("main", skip())])) ;
+@autoName test bool _26025a27fd6df3a230c1cd61e9cc3800() = compare(toAbstract(parse(#ProgExpression, "process @alice[5]()")), proc(<"@alice", 5>, [], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _af20a478ad168d6730d9583fde96e576() = compare(toAbstract(parse(#ProgExpression, "global @alice() global @bob() global @carol()")), seq(seq(glob("@alice", [], [proced("main", skip())]), glob("@bob", [], [proced("main", skip())])), glob("@carol", [], [proced("main", skip())]))) ;
 
 /*
  * Expressions: Globals
@@ -38,10 +38,10 @@ PROG_EXPRESSION toAbstract(e: (Global) `global <Role r>(<{FormalParameter ","}* 
 PROG_EXPRESSION toAbstract(e: (Global) `global <Role r>(<{FormalParameter ","}* formals>) { <Procedure* proceds> }`)
     = glob(toAbstract(r), [*toAbstract(formal) | formal <- formals], addMain([toAbstract(proced) | proced <- proceds])) [src = e.src] [rSrc = r.src] ;
 
-@autoName test bool _0fef4616a15340b26df4768fab3e856a() = compare(toAbstract(parse(#Global, "global Alice()")), glob("Alice", [], [proced("main", skip())])) ;
-@autoName test bool _dbc360f3eae7e73e95679945bf4e59a7() = compare(toAbstract(parse(#Global, "global Alice(x: number, y: boolean)")), glob("Alice", [formal("x", number()), formal("y", boolean())], [proced("main", skip())])) ;
-@autoName test bool _68dbedd557c89e2bb894569f49a9448a() = compare(toAbstract(parse(#Global, "global Alice() { main: assign assign: x := 5 }")), glob("Alice", [], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
-@autoName test bool _ccb8e2f4f1e90e71de7cb68002f3f4aa() = compare(toAbstract(parse(#Global, "global Alice(x: number, y: boolean) { main: assign assign: x := 5 }")), glob("Alice", [formal("x", number()), formal("y", boolean())], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
+@autoName test bool _405a086da7e84e7640471ee04ac5cbc0() = compare(toAbstract(parse(#Global, "global @alice()")), glob("@alice", [], [proced("main", skip())])) ;
+@autoName test bool _177f520b67f8cc8f8b49200dc8857fec() = compare(toAbstract(parse(#Global, "global @alice(x: number, y: boolean)")), glob("@alice", [formal("x", number()), formal("y", boolean())], [proced("main", skip())])) ;
+@autoName test bool _9b17befb2929497bab28a08c00a3be3a() = compare(toAbstract(parse(#Global, "global @alice() { main: assign assign: x := 5 }")), glob("@alice", [], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
+@autoName test bool _fcf06dd688192cfd7e95bdfefbec3a45() = compare(toAbstract(parse(#Global, "global @alice(x: number, y: boolean) { main: assign assign: x := 5 }")), glob("@alice", [formal("x", number()), formal("y", boolean())], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
 
 private list[PROCEDURE] addMain(list[PROCEDURE] proceds)
     = proceds + ((/proced("main", _) := proceds) ? [] : [proced("main", skip())]) ;
@@ -55,12 +55,12 @@ PROG_EXPRESSION toAbstract(e: (Process) `process <Pid rk>(<{ActualParameter ","}
 PROG_EXPRESSION toAbstract(e: (Process) `process <Pid rk>(<{ActualParameter ","}* actuals>) |\> <ChorExpression eChor>`)
     = proc(toAbstract(rk), [toAbstract(actual) | actual <- actuals], toAbstract(eChor)) [src = e.src] [rkSrc = rk.src] ;
 
-@autoName test bool _6f2124f318cc44db0b3345bb9fbdf5fe() = compare(toAbstract(parse(#Process, "process Alice[5]()")), proc(<"Alice", 5>, [], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _2120b0e692f4fa7a17c1c238cc225bfe() = compare(toAbstract(parse(#Process, "process Alice[5](5, 6)")), proc(<"Alice", 5>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _7337bb44f794f84c599ea619e91943f7() = compare(toAbstract(parse(#Process, "process Bob(5, 6)")), proc(<"Bob", 0>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _af95ce68a7fb346348ce04062b37d11d() = compare(toAbstract(parse(#Process, "process Alice[5]() |\> n := 5")), proc(<"Alice", 5>, [], asgn("n", val(5)))) ;
-@autoName test bool _7720d08b4ef1d97e0864586b127fa786() = compare(toAbstract(parse(#Process, "process Alice[5](5, 6) |\> n := 5")), proc(<"Alice", 5>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
-@autoName test bool _5ce0d715ad2f3744b8f86559b28af3da() = compare(toAbstract(parse(#Process, "process Bob(5, 6) |\> n := 5")), proc(<"Bob", 0>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
+@autoName test bool _b0afc7b971277fd5521d555a292513ef() = compare(toAbstract(parse(#Process, "process @alice[5]()")), proc(<"@alice", 5>, [], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _02bf104e8a391d355faf8c3e7031e6f9() = compare(toAbstract(parse(#Process, "process @alice[5](5, 6)")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _7759626afa3f2ce5ba0f2685b5f93b09() = compare(toAbstract(parse(#Process, "process @bob(5, 6)")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _ddddd996bb74644b1c2c5ca689a90aef() = compare(toAbstract(parse(#Process, "process @alice[5]() |\> n := 5")), proc(<"@alice", 5>, [], asgn("n", val(5)))) ;
+@autoName test bool _2fa9e77b4fa65948677285b69057c4f4() = compare(toAbstract(parse(#Process, "process @alice[5](5, 6) |\> n := 5")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
+@autoName test bool _82c9ab2c0f73d191da1272716f625339() = compare(toAbstract(parse(#Process, "process @bob(5, 6) |\> n := 5")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
 
 /*
  * Procedures

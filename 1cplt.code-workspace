@@ -1,9 +1,15 @@
 {
 	"folders": [
 		{
+			"name": "1cplt",
+			"path": "."
+		},
+		{
+			"name": "1cplt-rascal",
 			"path": "1cplt-rascal"
 		},
 		{
+			"name": "1cplt-vscode",
 			"path": "1cplt-vscode"
 		}
 	]

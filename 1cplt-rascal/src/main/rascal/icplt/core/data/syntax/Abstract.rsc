@@ -19,6 +19,7 @@ data DATA_TYPE(loc src = |unknown:///|)
     | string()
     | array(DATA_TYPE t)
     | object(map[str, DATA_TYPE] entries)
+    | union(list[DATA_TYPE] types)
     ;
 
 DATA_TYPE toAbstract(t: (DataType) `<Role r>`)
@@ -34,22 +35,31 @@ DATA_TYPE toAbstract(t: (DataType) `string`)
 DATA_TYPE toAbstract(t: (DataType) `<DataType t1>[]`)
     = array(toAbstract(t1)) [src = t.src] ;
 DATA_TYPE toAbstract(t: (DataType) `{<{DataTypeEntry [;]}* entries> <Semi? _>}`)
-    = object((() | it + toAbstract(entry) | entry <- entries)) ;
+    = object((() | it + toAbstract(entry) | entry <- entries)) [src = t.src] ;
+DATA_TYPE toAbstract(_: (DataType) `(<DataType t1>)`)
+    = toAbstract(t1) ;
+DATA_TYPE toAbstract(t: (DataType) `<DataType t1> | <{DataType [|]}+ t234>`)
+    = union([toAbstract(t1)] + [toAbstract(ti) | ti <- t234]) [src = t.src] ;
 
 map[str, DATA_TYPE] toAbstract((DataTypeEntry) `<DataVariable x>: <DataType t>`)
     = (toAbstract(x): toAbstract(t)) ;
 
-@autoName test bool _e4027c89195dca169cfbb62416d3c793() = compare(toAbstract(parse(#DataType, "Alice")), pid("Alice")) ;
+@autoName test bool _e6c034d7f37affa172871000709b26f5() = compare(toAbstract(parse(#DataType, "@alice")), pid("@alice")) ;
 @autoName test bool _d9c976d5ed72c5282ddf84c790a1afe6() = compare(toAbstract(parse(#DataType, "null")), null()) ;
 @autoName test bool _0a93b0b9c2d39a22932d9dd656993d89() = compare(toAbstract(parse(#DataType, "boolean")), boolean()) ;
 @autoName test bool _373b4061a87dec183ffbb6a85d876170() = compare(toAbstract(parse(#DataType, "number")), number()) ;
 @autoName test bool _0e6104dbfdda78c0112651dec61943be() = compare(toAbstract(parse(#DataType, "string")), string()) ;
-@autoName test bool _5607ca24fef95cb3831002e150aedfb1() = compare(toAbstract(parse(#DataType, "Alice[]")), array(pid("Alice"))) ;
+@autoName test bool _27ac1aed2829c62b99d2d00561750185() = compare(toAbstract(parse(#DataType, "@alice[]")), array(pid("@alice"))) ;
 @autoName test bool _381e655c36fd1ed03721f53f2eccc2dd() = compare(toAbstract(parse(#DataType, "{}")), object(())) ;
 @autoName test bool _446785b9191c5c4293c88ed0f9857f05() = compare(toAbstract(parse(#DataType, "{x: null}")), object(("x": null()))) ;
 @autoName test bool _2e1c61445f4038397e0d22f162f29cd5() = compare(toAbstract(parse(#DataType, "{x: boolean; y: number; z: string}")), object(("x": boolean(), "y": number(), "z": string()))) ;
 @autoName test bool _7707b9f00e984888702d0e32b372c0e8() = compare(toAbstract(parse(#DataType, "{outer: {inner: {}}}")), object(("outer": object(("inner": object(())))))) ;
 @autoName test bool _64b5dfe7b4ea53b881774785a582af59() = compare(toAbstract(parse(#DataType, "{outer: {inner: {};};}")), object(("outer": object(("inner": object(())))))) ;
+@autoName test bool _a3498a9cc40a41ec7eeedcadb3d6fccd() = compare(toAbstract(parse(#DataType, "(null)")), null()) ;
+@autoName test bool _1b9a8575f82b0797b479985ce99d440d() = compare(toAbstract(parse(#DataType, "number | boolean")), union([number(), boolean()])) ;
+@autoName test bool _a98077492e88dc0eb9d1d1acb7b262a6() = compare(toAbstract(parse(#DataType, "number | boolean | string")), union([number(), boolean(), string()])) ;
+@autoName test bool _f44673095724529aec4d2fed33950e04() = compare(toAbstract(parse(#DataType, "(number | boolean | string)[]")), array(union([number(), boolean(), string()]))) ;
+@autoName test bool _8e403cf2c51b1ba423cd2280aa4a9d61() = compare(toAbstract(parse(#DataType, "number[] | boolean[] | string[]")), union([array(number()), array(boolean()), array(string())])) ;
 
 str toStr(DATA_TYPE _: pid(r))
     = "<r>" ;
@@ -62,17 +72,26 @@ str toStr(DATA_TYPE _: number())
 str toStr(DATA_TYPE _: string())
     = "string" ;
 str toStr(DATA_TYPE _: array(t1))
-    = "<toStr(t1)>[]" ;
+    = "<parens(toStr(t1))>[]" ;
 str toStr(DATA_TYPE _: object(entries))
     = "{<intercalate("; ", ["<k>: <toStr(entries[k])>" | k <- entries])>}" ;
+str toStr(DATA_TYPE _: union(types))
+    = intercalate(" | ", [toStr(t) | t <- types]) ;
 
-@autoName test bool _fb052164acb12c42fa08d995f5b484f0() = toStr(pid("Alice")) == "Alice" ;
+private str parens(str s)
+    = contains(s, " ") ? "(<s>)" : s ;
+
+@autoName test bool _1bed5ae90f396bd132e7764db2a3db55() = toStr(pid("@alice")) == "@alice" ;
 @autoName test bool _f787b28bb88a382139a33049e967d220() = toStr(null()) == "null" ;
 @autoName test bool _61a689820a66fc089ed489d05f3ea59c() = toStr(boolean()) == "boolean" ;
 @autoName test bool _217a5b39e204f39db3febea0a8db2767() = toStr(number()) == "number" ;
 @autoName test bool _63a6c34e376f45f4fe884b4314d2dc14() = toStr(string()) == "string" ;
-@autoName test bool _5ab6d8d20f90ebe5215f66fb8925b800() = toStr(array(pid("Alice"))) == "Alice[]" ;
+@autoName test bool _d6bcfc91038166dbd3fadfca07817055() = toStr(array(pid("@alice"))) == "@alice[]" ;
 @autoName test bool _eed6512788df0ae2cdf870c2a1350ee0() = toStr(array(array(array(null())))) == "null[][][]" ;
+@autoName test bool _afa3371e5656d43686ed56772c0c48d5() = toStr(object(("x": null(), "y": null()))) == "{x: null; y: null}" ;
+@autoName test bool _f29974eafcd60605059702a554b169cd() = toStr(union([null(), boolean(), number()])) == "null | boolean | number" ;
+@autoName test bool _3cb352107349c01faa33b4e37f7fc117() = toStr(array(union([null(), boolean(), number()]))) == "(null | boolean | number)[]" ;
+@autoName test bool _b970153fc70d50d7cfc0daea360c28df() = toStr(union([array(null()), array(boolean()), array(number())])) == "null[] | boolean[] | number[]" ;
 
 /*
  * Types: Roles
@@ -83,7 +102,7 @@ alias ROLE = str;
 ROLE toAbstract(r: (Role) _)
     = "<r>";
 
-@autoName test bool _25edf7828fe83bf157da88c98fca6197() = toAbstract(parse(#Role, "Alice")) == "Alice" ;
+@autoName test bool _bd8e3680238a92336cfb4e26db3e37f4() = toAbstract(parse(#Role, "@alice")) == "@alice" ;
 
 /*
  * Expressions
@@ -114,9 +133,15 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `(<DataExpression e1>)`)
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<DataVariable x>`)
     = "length" == toAbstract(x)
     ? app("length", [toAbstract(e1)]) [src = e.src]
-    : app("access", [toAbstract(e1), val(toAbstract(x)) [src = x.src]]) [src = e.src] ;
+    : app("oaccess", [toAbstract(e1), val(toAbstract(x)) [src = x.src]]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Concat _>(<DataExpression e2>)`)
     = app("concat", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
+DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Slice _>(<DataExpression e2>)`)
+    = app("slice", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
+DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>.<Slice _>(<DataExpression e2>, <DataExpression e3>)`)
+    = app("slice", [toAbstract(e1), toAbstract(e2), toAbstract(e3)]) [src = e.src] ;
+DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>[<DataExpression e2>]`)
+    = app("aaccess", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<Prefix f> <DataExpression e1>`)
     = app("<f>", [toAbstract(e1)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1> <Exponentiation f> <DataExpression e2>`)
@@ -160,9 +185,12 @@ DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `...<DataExpression e1>`)
 @autoName test bool _d25e75c706753b27097998b2f8982269() = compare(toAbstract(parse(#DataExpression, "{...{x: true, y: 5, z: \"foo\"}, x: false}")), app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])]), app("entry", [val("x"), val(false)])]));
 @autoName test bool _c39c33a4d2d9cdb8b12432b06ac65ce1() = compare(toAbstract(parse(#DataExpression, "5 as number")), asc(val(5), number())) ;
 @autoName test bool _7b02dfcf7e6daba8fbd6c23fadf4e4a3() = compare(toAbstract(parse(#DataExpression, "(5)")), val(5)) ;
+@autoName test bool _bcd43a547a8e2cee387d7d43d6e1b3b3() = compare(toAbstract(parse(#DataExpression, "{}.x")), app("oaccess", [app("object", []), val("x")])) ;
 @autoName test bool _600f0dc1ec014a70c64c038c8d3e6a4a() = compare(toAbstract(parse(#DataExpression, "[].length")), app("length", [app("array", [])])) ;
 @autoName test bool _a514539a6e7ad6d00e704e3bacb3b524() = compare(toAbstract(parse(#DataExpression, "[].concat([])")), app("concat", [app("array", []), app("array", [])])) ;
-@autoName test bool _965ddfa2546d3d0aee80ca845419158a() = compare(toAbstract(parse(#DataExpression, "{}.x")), app("access", [app("object", []), val("x")])) ;
+@autoName test bool _355ee94ded2debe464c0b101b390d20a() = compare(toAbstract(parse(#DataExpression, "[].slice(1)")), app("slice", [app("array", []), val(1)])) ;
+@autoName test bool _dd8b5a69d3ed9de5625944a2c853028f() = compare(toAbstract(parse(#DataExpression, "[].slice(1, 3)")), app("slice", [app("array", []), val(1), val(3)])) ;
+@autoName test bool _1688f76afcf9c0bf28fea8075ab841d3() = compare(toAbstract(parse(#DataExpression, "[][0]")), app("aaccess", [app("array", []), val(0)])) ;
 @autoName test bool _0ebc5fa5150a5256633ff258ecca1fc1() = compare(toAbstract(parse(#DataExpression, "!true")), app("!", [val(true)])) ;
 @autoName test bool _daf49fbc90c589f929a03dbbd0a0685a() = compare(toAbstract(parse(#DataExpression, "5 ** 6")), app("**", [val(5), val(6)])) ;
 @autoName test bool _bf4f9d63fce32cdf03637f45bbeed78e() = compare(toAbstract(parse(#DataExpression, "5 ** 6 ** 7")), app("**", [val(5), app("**", [val(6), val(7)])])) ;
@@ -206,13 +234,13 @@ str toStr(DATA_EXPRESSION _: val(v)) {
 str toStr(DATA_EXPRESSION _: asc(e1, t))
     = "<toStr(e1)> as <toStr(t)>" ;
 str toStr(DATA_EXPRESSION _: app(f, args))
-    = "access" == f
+    = "oaccess" == f
     ? "<toStr(args[0])>.<args[1].v>"
     : "<f>(<intercalate(", ", [toStr(arg) | arg <- args])>)" ;
 
 @autoName test bool _316445d34c4db4cc504f8205ee83b07a() = toStr(var("x")) == "x" ;
-@autoName test bool _492da7b22b5dd03e48c81b62560c61bc() = toStr(val(<"Alice", 0>)) == "Alice" ;
-@autoName test bool _eb718d61e781e3b84bbce04425a0d90f() = toStr(val(<"Alice", 5>)) == "Alice[5]" ;
+@autoName test bool _cd6ce612e38a2423bf35edfd6bb18e44() = toStr(val(<"@alice", 0>)) == "@alice" ;
+@autoName test bool _0954b4ecad838ab7088856dea1e4e2a8() = toStr(val(<"@alice", 5>)) == "@alice[5]" ;
 @autoName test bool _022552671b43152ed15663fb6f487468() = toStr(val(NULL)) == "null" ;
 @autoName test bool _2b33d3d631e1e3eb41230baaca897189() = toStr(val(true)) == "true" ;
 @autoName test bool _eb8ec484d6e5f60a78dc2c0e4b9e7715() = toStr(asc(val(5), number())) == "5 as number" ;
@@ -249,8 +277,8 @@ PID toAbstract((Pid) `<Role r>`)
 PID toAbstract((Pid) `<Role r>[<Number k>]`)
     = <toAbstract(r), toAbstract(k)> ;
 
-@autoName test bool _c1fed0d78bd3e0cc0da4c42f5d6b50de() = toAbstract(parse(#Pid, "Alice")) == <"Alice", 0> ;
-@autoName test bool _660402f4bfe9f0586e7ecbb8d9a75bff() = toAbstract(parse(#Pid, "Alice[5]")) == <"Alice", 5> ;
+@autoName test bool _b1913042f35522a568697c28e54b23de() = toAbstract(parse(#Pid, "@alice")) == <"@alice", 0> ;
+@autoName test bool _29cda6b45e6e49e01e59467e119e984e() = toAbstract(parse(#Pid, "@alice[5]")) == <"@alice", 5> ;
 
 /*
  * Values: Null
