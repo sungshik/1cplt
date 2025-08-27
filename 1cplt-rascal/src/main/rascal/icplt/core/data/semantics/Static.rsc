@@ -2,6 +2,7 @@ module icplt::core::\data::\semantics::Static
 
 import List;
 import Message;
+import Node;
 import util::Maybe;
 
 import icplt::core::\data::\syntax::Abstract;
@@ -41,9 +42,9 @@ list[Message] analyze(DATA_CONTEXT c, DATA_EXPRESSION e)
 Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: err())
     = nothing() ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: var(x))
-    = just(c.gamma[x]) when x in c.gamma ;
+    = just(unsetRec(c.gamma[x], "src")) when x in c.gamma ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: asc(_, t))
-    = just(t) ;
+    = just(unsetRec(t, "src")) ;
 
 default Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _)
     = nothing() ;
