@@ -453,6 +453,17 @@ list[Message] check(DATA_TYPE t: object(entries), DATA_CONTEXT c, _: DATA_EXPRES
 @autoName test bool _06acbe1d718ffb46ba14ce18f4db6dda() = ret := check(object(("x": boolean(), "y": number(), "z": string())), c1, app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(NULL)])])]), app("entry", [val("z"), val(NULL)])])) && [_, _] := ret ;
 @autoName test bool _0abc8c6bb327b86fbaea10bd4af71b2c() = ret := check(object(("x": boolean(), "y": number(), "z": string())), c1, app("object", [app("spread", [app("object", [app("entry", [val("x"), val(NULL)]), app("entry", [val("y"), val(NULL)])])]), app("entry", [val("z"), val(NULL)])])) && [_, _, _] := ret ;
 
+/*
+ * Checking: Unions
+ */
+
+list[Message] check(DATA_TYPE _: union(types), DATA_CONTEXT c, DATA_EXPRESSION e)
+    = [] when any(t <- types, [] == check(t, c, e)) ;
+
+@autoName test bool _1e450595e74928a5fab9f64e8c8c9562() = ret := check(union([number(), null()]), c1, val(5)) && [] == ret ;
+@autoName test bool _b2a3eb8dfa47ee83a2d485a544579e43() = ret := check(union([number(), null()]), c1, val(NULL)) && [] == ret ;
+@autoName test bool _e74e879e2f0d90e0064e384cbce92c6b() = ret := check(union([number(), null()]), c1, val(true)) && [_] := ret ;
+
 /* -------------------------------------------------------------------------- */
 /*                                 `foreach`                                  */
 /* -------------------------------------------------------------------------- */

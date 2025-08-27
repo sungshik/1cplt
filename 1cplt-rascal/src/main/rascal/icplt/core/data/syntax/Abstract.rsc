@@ -19,6 +19,7 @@ data DATA_TYPE(loc src = |unknown:///|)
     | string()
     | array(DATA_TYPE t)
     | object(map[str, DATA_TYPE] entries)
+    | union(list[DATA_TYPE] types)
     ;
 
 DATA_TYPE toAbstract(t: (DataType) `<Role r>`)
@@ -34,7 +35,11 @@ DATA_TYPE toAbstract(t: (DataType) `string`)
 DATA_TYPE toAbstract(t: (DataType) `<DataType t1>[]`)
     = array(toAbstract(t1)) [src = t.src] ;
 DATA_TYPE toAbstract(t: (DataType) `{<{DataTypeEntry [;]}* entries> <Semi? _>}`)
-    = object((() | it + toAbstract(entry) | entry <- entries)) ;
+    = object((() | it + toAbstract(entry) | entry <- entries)) [src = t.src] ;
+DATA_TYPE toAbstract(_: (DataType) `(<DataType t1>)`)
+    = toAbstract(t1) ;
+DATA_TYPE toAbstract(t: (DataType) `<DataType t1> | <{DataType [|]}+ t234>`)
+    = union([toAbstract(t1)] + [toAbstract(ti) | ti <- t234]) [src = t.src] ;
 
 map[str, DATA_TYPE] toAbstract((DataTypeEntry) `<DataVariable x>: <DataType t>`)
     = (toAbstract(x): toAbstract(t)) ;
@@ -50,6 +55,11 @@ map[str, DATA_TYPE] toAbstract((DataTypeEntry) `<DataVariable x>: <DataType t>`)
 @autoName test bool _2e1c61445f4038397e0d22f162f29cd5() = compare(toAbstract(parse(#DataType, "{x: boolean; y: number; z: string}")), object(("x": boolean(), "y": number(), "z": string()))) ;
 @autoName test bool _7707b9f00e984888702d0e32b372c0e8() = compare(toAbstract(parse(#DataType, "{outer: {inner: {}}}")), object(("outer": object(("inner": object(())))))) ;
 @autoName test bool _64b5dfe7b4ea53b881774785a582af59() = compare(toAbstract(parse(#DataType, "{outer: {inner: {};};}")), object(("outer": object(("inner": object(())))))) ;
+@autoName test bool _a3498a9cc40a41ec7eeedcadb3d6fccd() = compare(toAbstract(parse(#DataType, "(null)")), null()) ;
+@autoName test bool _1b9a8575f82b0797b479985ce99d440d() = compare(toAbstract(parse(#DataType, "number | boolean")), union([number(), boolean()])) ;
+@autoName test bool _a98077492e88dc0eb9d1d1acb7b262a6() = compare(toAbstract(parse(#DataType, "number | boolean | string")), union([number(), boolean(), string()])) ;
+@autoName test bool _f44673095724529aec4d2fed33950e04() = compare(toAbstract(parse(#DataType, "(number | boolean | string)[]")), array(union([number(), boolean(), string()]))) ;
+@autoName test bool _8e403cf2c51b1ba423cd2280aa4a9d61() = compare(toAbstract(parse(#DataType, "number[] | boolean[] | string[]")), union([array(number()), array(boolean()), array(string())])) ;
 
 str toStr(DATA_TYPE _: pid(r))
     = "<r>" ;
@@ -62,9 +72,14 @@ str toStr(DATA_TYPE _: number())
 str toStr(DATA_TYPE _: string())
     = "string" ;
 str toStr(DATA_TYPE _: array(t1))
-    = "<toStr(t1)>[]" ;
+    = "<parens(toStr(t1))>[]" ;
 str toStr(DATA_TYPE _: object(entries))
     = "{<intercalate("; ", ["<k>: <toStr(entries[k])>" | k <- entries])>}" ;
+str toStr(DATA_TYPE _: union(types))
+    = intercalate(" | ", [toStr(t) | t <- types]) ;
+
+private str parens(str s)
+    = contains(s, " ") ? "(<s>)" : s ;
 
 @autoName test bool _1bed5ae90f396bd132e7764db2a3db55() = toStr(pid("@alice")) == "@alice" ;
 @autoName test bool _f787b28bb88a382139a33049e967d220() = toStr(null()) == "null" ;
@@ -73,6 +88,10 @@ str toStr(DATA_TYPE _: object(entries))
 @autoName test bool _63a6c34e376f45f4fe884b4314d2dc14() = toStr(string()) == "string" ;
 @autoName test bool _d6bcfc91038166dbd3fadfca07817055() = toStr(array(pid("@alice"))) == "@alice[]" ;
 @autoName test bool _eed6512788df0ae2cdf870c2a1350ee0() = toStr(array(array(array(null())))) == "null[][][]" ;
+@autoName test bool _afa3371e5656d43686ed56772c0c48d5() = toStr(object(("x": null(), "y": null()))) == "{x: null; y: null}" ;
+@autoName test bool _f29974eafcd60605059702a554b169cd() = toStr(union([null(), boolean(), number()])) == "null | boolean | number" ;
+@autoName test bool _3cb352107349c01faa33b4e37f7fc117() = toStr(array(union([null(), boolean(), number()]))) == "(null | boolean | number)[]" ;
+@autoName test bool _b970153fc70d50d7cfc0daea360c28df() = toStr(union([array(null()), array(boolean()), array(number())])) == "null[] | boolean[] | number[]" ;
 
 /*
  * Types: Roles

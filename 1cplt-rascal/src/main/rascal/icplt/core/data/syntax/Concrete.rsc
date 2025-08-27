@@ -9,8 +9,10 @@ syntax DataType
     | @category="keyword" "boolean"
     | @category="keyword" "number"
     | @category="keyword" "string"
-    | DataType [\[] [\]]
+    | left DataType!union [\[] [\]]
     | [{] {DataTypeEntry [;]}* Semi? [}]
+    | [(] DataType [)]
+    > left union: DataType!union [|] {DataType!union [|]}+
     ;
 
 syntax DataTypeEntry
