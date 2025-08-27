@@ -1,5 +1,6 @@
 module icplt::core::\data::\semantics::Static
 
+import List;
 import Message;
 import util::Maybe;
 
