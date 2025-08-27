@@ -15,7 +15,7 @@ global @node(
           recv
 
   recv:
-    senders := cons(sender, senders) ;
+    senders := [sender].concat(senders) ;
     if !init then {
       if
         // Step 1: First receive?

@@ -5,7 +5,7 @@ global @prod(ok: boolean)
       if
         ps.length < m
       then
-        ps := cons(p, ps) ;
+        ps := [p].concat(ps) ;
         true -> p.ok
       else
         false -> p.ok
