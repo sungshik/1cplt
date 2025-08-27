@@ -32,6 +32,7 @@ syntax DataExpression
     | left DataExpression!comma [.] Concat [(] DataExpression!comma [)]
     | left DataExpression!comma [.] Slice [(] DataExpression!comma [)]
     | left DataExpression!comma [.] Slice [(] DataExpression!comma [,] DataExpression!comma [)]
+    | () !>> [@] DataExpression!comma [\[] DataExpression!comma [\]]
     > Prefix DataExpression!comma
     > right DataExpression!comma Exponentiation DataExpression!comma
     > left DataExpression!comma Multiplication DataExpression!comma

@@ -85,9 +85,13 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("?:", [val(BOOLEAN b), val(DATA_VALUE v1), val(DATA_VALUE v2)])>)
     = <s, val(b ? v1 : v2)> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(",", args)>)
-    = <s, args[-1]> when !any(ei <- args, !(ei is val));
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("oaccess", [val(OBJECT obj), val(v)])>)
-    = <s, val(obj[v])> when v in obj;
+    = <s, args[-1]> when !any(ei <- args, !(ei is val)) ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("oaccess", [val(OBJECT obj), val(DATA_VALUE v)])>)
+    = <s, val(obj[v])> when v in obj ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("aaccess", [val(ARRAY arr), val(NUMBER n)])>)
+    = <s, val(arr[n])> when 0 <= n && n < size(arr) ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("aaccess", [val(ARRAY arr), val(NUMBER n)])>)
+    = <s, val(NULL)> when n < 0 || size(arr) <= n ;
 
 @autoName test bool _abe2873c55f423a575fa750dee664e9f() = reduce(<s1, app("??", [val(5), val(6)])>) == <s1, val(5)> ;
 @autoName test bool _3f7eee43ea3f6bde29d2ec4afd92802b() = reduce(<s1, app("??", [val(NULL), val(6)])>) == <s1, val(6)> ;
@@ -97,6 +101,11 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 @autoName test bool _7a494eea2c186e81ca9dc4e2ff375e60() = reduce(<s1, app("oaccess", [val(("x": true, "y": 5, "z": "foo")), val("x")])>) == <s1, val(true)> ;
 @autoName test bool _654b6e56a73dada03c719b06d6838ef4() = reduce(<s1, app("oaccess", [val(("x": true, "y": 5, "z": "foo")), val("y")])>) == <s1, val(5)> ;
 @autoName test bool _1960c2758afd740a923abb064d65dda5() = reduce(<s1, app("oaccess", [val(("x": true, "y": 5, "z": "foo")), val("z")])>) == <s1, val("foo")> ;
+@autoName test bool _f6dc6b620ef3bf02dc32ae9360e753ce() = reduce(<s1, app("aaccess", [val([5, 6, 7]), val(0)])>) == <s1, val(5)> ;
+@autoName test bool _1e126e6368bade5609f5b7fa3d7b12fd() = reduce(<s1, app("aaccess", [val([5, 6, 7]), val(1)])>) == <s1, val(6)> ;
+@autoName test bool _fa4fc4104370dd5c77fbfe8f2ee0fc9f() = reduce(<s1, app("aaccess", [val([5, 6, 7]), val(2)])>) == <s1, val(7)> ;
+@autoName test bool _5c31ca5e3f0d8d25dcbcb0560a337e10() = reduce(<s1, app("aaccess", [val([5, 6, 7]), val(3)])>) == <s1, val(NULL)> ;
+@autoName test bool _d778e388fe7427517e1c2e8fce04363d() = reduce(<s1, app("aaccess", [val([5, 6, 7]), val(-1)])>) == <s1, val(NULL)> ;
 
 /*
  * Reduction: Pids

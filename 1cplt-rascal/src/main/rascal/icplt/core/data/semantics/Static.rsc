@@ -237,6 +237,18 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("spread", [DATA_EX
 @autoName test bool _f248be8a07db0fbc2dca1cb2307e2957() = infer(c1, app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])]), app("entry", [val("x"), val(false)])])) == just(object(("x": boolean(), "y": number(), "z": string()))) ;
 
 /*
+ * Unions
+ */
+
+Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("aaccess", [e1, e2]))
+    = just(union([t, null()])) when just(array(t)) := infer(c, e1) ;
+
+@autoName test bool _7386ce2645bceb23672f7e87164bb84f() = infer(c1, app("aaccess", [app("array", []), val(0)])) == nothing() ;
+@autoName test bool _8dccef3a82f9d304db031ae44254d7c3() = infer(c1, app("aaccess", [app("array", [val(5), val(6)]), val(0)])) == just(union([number(), null()])) ;
+@autoName test bool _e8e656cb2eb0dcc16fc19e4e1de08327() = infer(c1, app("aaccess", [app("array", [val(5), val(6)]), val(true)])) == just(union([number(), null()])) ;
+@autoName test bool _459886a76cacc2c98e5ef0e400eda583() = infer(c1, app("aaccess", [app("array", [val(5), val(true)]), val(0)])) == just(union([union([number(), boolean()]), null()])) ;
+
+/*
  * Checking
  */
 
@@ -478,10 +490,17 @@ list[Message] check(DATA_TYPE t: object(entries), DATA_CONTEXT c, _: DATA_EXPRES
 
 list[Message] check(DATA_TYPE _: union(types), DATA_CONTEXT c, DATA_EXPRESSION e)
     = [] when any(t <- types, [] == check(t, c, e)) ;
+list[Message] check(DATA_TYPE _: union(types), DATA_CONTEXT c, DATA_EXPRESSION _: app("aaccess", [e1, e2]))
+    = check(array(t), c, e1) + check(number(), c, e2) when {t, null()} := {*types};
 
 @autoName test bool _1e450595e74928a5fab9f64e8c8c9562() = ret := check(union([number(), null()]), c1, val(5)) && [] == ret ;
 @autoName test bool _b2a3eb8dfa47ee83a2d485a544579e43() = ret := check(union([number(), null()]), c1, val(NULL)) && [] == ret ;
 @autoName test bool _e74e879e2f0d90e0064e384cbce92c6b() = ret := check(union([number(), null()]), c1, val(true)) && [_] := ret ;
+@autoName test bool _203b936885c2bb8638811b64bf68d7c3() = ret := check(union([number(), null()]), c1, app("aaccess", [app("array", []), val(0)])) && [] == ret ;
+@autoName test bool _85d0697fe05b16c51d5acb59e0e83bc2() = ret := check(union([null(), number()]), c1, app("aaccess", [app("array", []), val(0)])) && [] == ret ;
+@autoName test bool _2504fc0944014fece9dfa0dbe958f5c3() = ret := check(union([number(), null()]), c1, app("aaccess", [app("array", [val(5), val(6)]), val(0)])) && [] == ret ;
+@autoName test bool _d55388984ad0c3080857acef01158a0b() = ret := check(union([number(), null()]), c1, app("aaccess", [app("array", [val(5), val(6)]), val(true)])) && [_] := ret ;
+@autoName test bool _10a282fe5866105f177a6607802ff7fe() = ret := check(union([number(), null()]), c1, app("aaccess", [app("array", [val(5), val(true)]), val(0)])) && [_] := ret ;
 
 /* -------------------------------------------------------------------------- */
 /*                                 `foreach`                                  */
