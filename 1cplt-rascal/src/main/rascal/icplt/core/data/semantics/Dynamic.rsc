@@ -284,31 +284,3 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 @autoName test bool _19d92c7c76e0f1475befa2a8667ed55c() = reduce(<s1, app("object", [])>) == <s1, val(())> ;
 @autoName test bool _9b95cbe60d6ff840c0cbc34303ffcca0() = reduce(<s1, app("object", [val(("x": NULL))])>) == <s1, val(("x": NULL))> ;
 @autoName test bool _3c4ce56082ccc34ce9d29e4613738a9e() = reduce(<s1, app("object", [val(("x": true)), val(("y": 5)), val(("z": "foo"))])>) == <s1, val(("x": true, "y": 5, "z": "foo"))> ;
-
-/* -------------------------------------------------------------------------- */
-/*                                 `foreach`                                  */
-/* -------------------------------------------------------------------------- */
-
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("isNil", [val(ARRAY a)])>)
-    = <s, val([] == a)> ;
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("cons", [val(v), val(ARRAY a)])>)
-    = <s, val([v] + a)> ;
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("headOrDefault", [val(ARRAY a), val(v)])>)
-    = <s, val([] == a ? v : a[0])> ;
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("tailOrDefault", [val(ARRAY a1), val(ARRAY a2)])>)
-    = <s, val([] == a1 ? a2 : a1[1..])> ;
-
-@autoName test bool _8cbb8bde0bcc2c32c83d502b12c5ca06() = reduce(<s1, app("isNil", [val([])])>) == <s1, val(true)> ;
-@autoName test bool _1ecbe7a932d0d728e1205a79307513b3() = reduce(<s1, app("isNil", [val([5, 6, 7])])>) == <s1, val(false)> ;
-@autoName test bool _73f6ca6fc180f626b65a7722cdbe6a91() = reduce(<s1, app("cons", [val(5), val([6, 7])])>) == <s1, val([5, 6, 7])> ;
-@autoName test bool _aaffb693fb093585097348be50de85fc() = reduce(<s1, app("headOrDefault", [val([]), val(7)])>) == <s1, val(7)> ;
-@autoName test bool _7ada23156b18602d7438d6b029bc4b6e() = reduce(<s1, app("headOrDefault", [val([5, 6]), val(7)])>) == <s1, val(5)> ;
-@autoName test bool _30412897f3c44e24f2d0a7338311f0fa() = reduce(<s1, app("tailOrDefault", [val([]), val([7])])>) == <s1, val([7])> ;
-@autoName test bool _693dbdd3b55776274d964f8ccc455a13() = reduce(<s1, app("tailOrDefault", [val([5, 6]), val([7])])>) == <s1, val([6])> ;
-@autoName test bool _e099f3c21d8778cf1e84f280ace2869b() = normalize(<s1, app("isNil", [app("array", [])])>) == <s1, val(true)> ;
-@autoName test bool _1380fafcf9aec79a2d4d5a3a6b23884d() = normalize(<s1, app("isNil", [app("array", [val(5), val(6), val(7)])])>) == <s1, val(false)> ;
-@autoName test bool _2dd306bebf530bbfbe24bd5c9017ad43() = normalize(<s1, app("cons", [val(5), app("array", [val(6), val(7)])])>) == <s1, val([5, 6, 7])> ;
-@autoName test bool _0daa4a182cd22d42d3b1598982124d8a() = normalize(<s1, app("headOrDefault", [app("array", []), val(7)])>) == <s1, val(7)> ;
-@autoName test bool _ed1ee89d8e700b95c6cbbcfd330f6d18() = normalize(<s1, app("headOrDefault", [app("array", [val(5), val(6)]), val(7)])>) == <s1, val(5)> ;
-@autoName test bool _a8e38c53812ce8542034543974fe07e3() = normalize(<s1, app("tailOrDefault", [app("array", []), app("array", [val(7)])])>) == <s1, val([7])> ;
-@autoName test bool _f8e1a50ec7fa63bf4d32c192dc31e1a5() = normalize(<s1, app("tailOrDefault", [app("array", [val(5), val(6)]), app("array", [val(7)])])>) == <s1, val([6])> ;
