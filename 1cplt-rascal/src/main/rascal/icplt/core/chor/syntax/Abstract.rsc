@@ -91,12 +91,12 @@ CHOR_EXPRESSION toAbstract(e: (ChorExpression) `foreach\<<DataType tData>\> <Dat
     = seq(
         asgn(xDataColl, toAbstract(eData)),
         loop(
-            app("!", [app("isNil", [var(xDataColl)])]),
+            app("!=", [app("length", [var(xDataColl)]), val(0)]),
             seq(
-                asgn("<xDataElem>", app("headOrDefault", [var(xDataColl), defaultOf(toAbstract(tData))])),
+                asgn("<xDataElem>", app("??", [app("aaccess", [var(xDataColl), val(0)]), defaultOf(toAbstract(tData))])),
                 seq(
                     substVar("<xData>", xDataElem, toAbstract(e1)),
-                    asgn(xDataColl, app("tailOrDefault", [var(xDataColl), val([])]))
+                    asgn(xDataColl, app("slice", [var(xDataColl), val(1)]))
                 )
             )
         )
