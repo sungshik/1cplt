@@ -337,21 +337,3 @@ alias ARRAY = list[value] ;
  */
 
 alias OBJECT = map[str, value] ;
-
-/* -------------------------------------------------------------------------- */
-/*                                 `foreach`                                  */
-/* -------------------------------------------------------------------------- */
-
-DATA_EXPRESSION toAbstract(e: (DataExpression) `isNil(<DataExpression e1>)`)
-    = app("isNil", [toAbstract(e1)]) [src = e.src] ;
-DATA_EXPRESSION toAbstract(e: (DataExpression) `cons(<DataExpression e1>, <DataExpression e2>)`)
-    = app("cons", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
-DATA_EXPRESSION toAbstract(e: (DataExpression) `headOrDefault(<DataExpression e1>, <DataExpression e2>)`)
-    = app("headOrDefault", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
-DATA_EXPRESSION toAbstract(e: (DataExpression) `tailOrDefault(<DataExpression e1>, <DataExpression e2>)`)
-    = app("tailOrDefault", [toAbstract(e1), toAbstract(e2)]) [src = e.src] ;
-
-@autoName test bool _0ca6f8d33edee4408b792b07988f87be() = compare(toAbstract(parse(#DataExpression, "isNil([5, 6, 7])")), app("isNil", [app("array", [val(5), val(6), val(7)])])) ;
-@autoName test bool _094d387f8c1cffaa6f4fea8f40dad0fc() = compare(toAbstract(parse(#DataExpression, "cons(5, [6, 7])")), app("cons", [val(5), app("array", [val(6), val(7)])])) ;
-@autoName test bool _e8f01142b3255079374dea139f649d29() = compare(toAbstract(parse(#DataExpression, "headOrDefault([5, 6], 7)")), app("headOrDefault", [app("array", [val(5), val(6)]), val(7)])) ;
-@autoName test bool _ec99c2c08d7a743970068040a771851b() = compare(toAbstract(parse(#DataExpression, "tailOrDefault([5, 6], [7])")), app("tailOrDefault", [app("array", [val(5), val(6)]), app("array", [val(7)])])) ;

@@ -101,15 +101,3 @@ keyword DataKeyword
     | "false"
     | "self"
     ;
-
-/* -------------------------------------------------------------------------- */
-/*                                 `foreach`                                  */
-/* -------------------------------------------------------------------------- */
-
-syntax DataExpression
-    = ArrayFunction1 "(" DataExpression!comma ")"
-    | ArrayFunction2 "(" DataExpression!comma "," DataExpression!comma ")"
-    ;
-
-lexical ArrayFunction1 = @category="operator" "isNil" ;
-lexical ArrayFunction2 = @category="operator" ("cons" | "headOrDefault" | "tailOrDefault") ;
