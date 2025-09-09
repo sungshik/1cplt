@@ -1,24 +1,27 @@
 module icplt::core::\prog::IDE
 
 import IO;
-
 import Map;
 import Message;
 import ParseTree;
 import Set;
+import icplt::core::\chor::IDE;
+import icplt::core::\chor::\semantics::Dynamic;
+import icplt::core::\chor::\semantics::Static;
+import icplt::core::\chor::\syntax::Abstract;
+import icplt::core::\prog::\semantics::Dynamic;
+import icplt::core::\prog::\semantics::JSON;
+import icplt::core::\prog::\semantics::JavaScript;
+import icplt::core::\prog::\semantics::Static;
+import icplt::core::\prog::\syntax::Abstract;
+import icplt::core::\prog::\syntax::Concrete;
+import icplt::core::\util::ShellExec;
+import util::FileSystem;
 import util::IDEServices;
 import util::LanguageServer;
 import util::Maybe;
 import util::Reflective;
-
-import icplt::core::\chor::IDE;
-import icplt::core::\chor::\syntax::Abstract;
-import icplt::core::\chor::\semantics::Static;
-import icplt::core::\chor::\semantics::Dynamic;
-import icplt::core::\prog::\syntax::Abstract;
-import icplt::core::\prog::\syntax::Concrete;
-import icplt::core::\prog::\semantics::Static;
-import icplt::core::\prog::\semantics::Dynamic;
+import util::UUID;
 
 void register(Language lang = language()) {
     registerLanguage(lang);
@@ -62,30 +65,28 @@ Summary analysisService(loc l, PROG_EXPRESSION e, PROG_CONTEXT c = toProgContext
 }
 
 lrel[loc, Command] codeLensService(start[Prog] input) {
-    set[PROG_EXPRESSION] procs = {toAbstract(process) | /process: (Process) _ := input};
-    set[PID] pids = {rk | proc(rk, _, _) <- procs};
-
     lrel[loc, Command] lenses = [];
-    lenses += [<proc.src, simulate(toAbstract(input.top.args[0]), pids, title = "Simulate all")> | PROG_EXPRESSION proc <- procs];
-    lenses += [<proc.src, simulate(toAbstract(input.top.args[0]), {rk}, title = "Simulate <toStr(val(rk))>")> | PROG_EXPRESSION proc: proc(rk, _, _) <- procs];
+    lenses += [<e.src, directive("<e>", [], input, title = "Run directive")> | /e: (Directive) _ := input, "<e>" in {"#analyze", "#compile", "#execute"}];
     return lenses;
 }
 
 data Command
-    = simulate(PROG_EXPRESSION e, set[PID] pids)
+    = directive(str name, list[str] args, start[Prog] input)
     ;
 
-void executionService(simulate(PROG_EXPRESSION e, set[PID] pids)) {
+void executionService(directive("#analyze", [], start[Prog] input)) {
+    PROG_EXPRESSION e = toAbstract(input.top.args[0]);
     PROG_CONTEXT c = toProgContext(e);
+
     if ([] != analyze(c, e)) {
-        Content content = plainText("Simulation aborted. Fix static errors (type checking failures), warnings (type inference failures), and infos (uninstantiated names) first.");
-        showInteractiveContent(content, title = "Simulation");
+        Content content = plainText("Run aborted. Fix static errors (type checking failures), warnings (type inference failures), and infos (uninstantiated names) first.");
+        showInteractiveContent(content, title = "Run");
         return;
     }
 
     PROG_STATE s = toProgState(e);
     if (state({map[PID, tuple[CHOR_STATE, CHOR_EXPRESSION]] alt}) := s) {
-        alt = (rk: rk in pids ? alt[rk] : <alt[rk]<0>, skip()> | rk <- alt);
+        alt = (rk: alt[rk] | rk <- alt);
         s = state({alt});
     }
 
@@ -116,7 +117,7 @@ void executionService(simulate(PROG_EXPRESSION e, set[PID] pids)) {
             for (alt <- s.alts) {
                 ret += {_, _, *_} := s.alts ? "Alternative <i>:\n" : "";
                 ret += {_, _, *_} := s.alts ? "\n" : "";
-                for (/proc(rk: <r, _>, _, _) := e, /glob(r, formals, _) := e, rk in pids) {
+                for (/proc(rk: <r, _>, _, _) := e, /glob(r, formals, _) := e) {
                     ret += "  - <toStr(val(rk))>\n";
                     ret += "\n";
                     for (/formal(xData, _) := formals) {
@@ -132,20 +133,50 @@ void executionService(simulate(PROG_EXPRESSION e, set[PID] pids)) {
     }
 
     str text =
-        "# Simulation
+        "# Analysis
         '
         '## Initial state
         '
         '<toPlainText(initial)>
         '
-        '## Final state (after <n> reductions)<n == threshold ? " -- out of fuel" : "">
+        '## Final state (after <n> transitions)<n == threshold ? " -- out of fuel" : "">
         '
         '<toPlainText(final)>
-        '
         '";
+    
+    loc tmp = |tmp:///1cplt/<uuid().authority>/analysis.md|;
+    writeFile(tmp, text);
+    edit(tmp);
+}
 
-    Content content = plainText(text);
-    showInteractiveContent(content, title = "Simulation");
+void executionService(directive("#compile", [], start[Prog] input)) {
+    PROG_EXPRESSION e = toAbstract(input.top.args[0]);
+    str name = input.src.file[..-4];
+    loc directory = input.src.parent + "<name>";
+  
+    for (f <- files(|project://1cplt-rascal/src/main/js/icplt|)) {
+        copy(f, directory + f.file);
+    }
+
+    void generateFile(loc target, str s) {
+        loc source = |tmp:///1cplt/<uuid().authority>|;
+        writeFile(source, s);
+        copy(source, target);
+    }
+    generateFile(directory + "main.json", toJSON(e));
+    generateFile(directory + "library.mjs", toJavaScript(e));
+}
+
+void executionService(directive("#execute", [], start[Prog] input)) {
+    executionService(directive("#compile", [], input));
+    str name = input.src.file[..-4];
+    loc directory = input.src.parent + "<name>";
+
+    int pid = execAsync("node", args = ["main.mjs"], workingDir = directory, callback = void() {
+        println("Ended executing <name> (#<pid>)");
+        edit(directory + "execution.md");
+    });
+    println("Began executing <name> (#<pid>)");
 }
 
 list[InlayHint] inlayHintService(start[Prog] input) {

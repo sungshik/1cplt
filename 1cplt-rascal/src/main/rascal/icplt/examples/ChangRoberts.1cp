@@ -15,3 +15,7 @@ global @node(neigh: @node, x, y: number, z: boolean)
 process @node[1](@node[2], 5, 0, false)
 process @node[2](@node[3], 6, 0, false)
 process @node[3](@node[1], 7, 0, false)
+
+#analyze
+#compile
+#execute

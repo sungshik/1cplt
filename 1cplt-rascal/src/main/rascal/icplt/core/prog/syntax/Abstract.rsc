@@ -3,8 +3,6 @@ extend icplt::core::\chor::\syntax::Abstract;
 extend icplt::core::\data::\syntax::Abstract;
 extend icplt::core::\util::\syntax::Abstract;
 
-import ParseTree;
-
 import icplt::core::\prog::\syntax::Concrete;
 
 /*
@@ -22,6 +20,8 @@ PROG_EXPRESSION toAbstract(e: (ProgExpression) `<Global _>`)
     = toAbstract(e.args[0]) ;
 PROG_EXPRESSION toAbstract(e: (ProgExpression) `<Process _>`)
     = toAbstract(e.args[0]) ;
+PROG_EXPRESSION toAbstract(e: (ProgExpression) `<Directive _>`)
+    = empty() [src = e.src] ;
 PROG_EXPRESSION toAbstract(e: (ProgExpression) `<ProgExpression e1> <ProgExpression e2>`)
     = seq(toAbstract(e1), toAbstract(e2)) [src = e.src] ;
 

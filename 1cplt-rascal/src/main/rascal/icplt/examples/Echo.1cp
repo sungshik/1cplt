@@ -38,3 +38,7 @@ process @node[1](true,  [          @node[2], @node[3], @node[4]], [], @node[1], 
 process @node[2](false, [@node[1],           @node[3], @node[4]], [], @node[2], @node[2])
 process @node[3](false, [@node[1], @node[2],           @node[4]], [], @node[3], @node[3])
 process @node[4](false, [@node[1], @node[2], @node[3]          ], [], @node[4], @node[4])
+
+#analyze
+#compile
+#execute

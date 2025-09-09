@@ -40,3 +40,7 @@ process @buyeri[2](0, 0, 5, false, @buyeri[3])
 process @buyeri[3](0, 0, 8, false, @buyeri[4])
 process @buyeri[4](0, 0, 2, true, @buyeri[4])
 process @seller("", false, [@buyeri[2], @buyeri[3], @buyeri[4]])
+
+#analyze
+#compile
+#execute
