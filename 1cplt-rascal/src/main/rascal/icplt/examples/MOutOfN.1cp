@@ -19,3 +19,7 @@ process @prod[3](false)
 process @cons(@prod[1], [], 2)
 //            ^^^^^^^^
 //            Dummy initial value
+
+#analyze
+#compile
+#execute
