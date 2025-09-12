@@ -48,15 +48,6 @@ export class Runtime {
     this.call(label);
   }
 
-  save() {
-    try {
-      node_fs.writeFileSync(`${this.#pid}.json`, JSON.stringify(this.state));
-      this.#logger.debug(`Saved state: ${JSON.stringify(this.state)}`);
-    } catch (e) {
-      this.#logger.error(`Failed to save state`);
-    }
-  }
-
   load() {
     try {
       const state = JSON.parse(node_fs.readFileSync(`${this.#pid}.json`));
@@ -64,6 +55,15 @@ export class Runtime {
       this.#logger.debug(`Loaded state: ${JSON.stringify(this.state)}`);
     } catch (e) {
       this.#logger.error(`Failed to load state`);
+    }
+  }
+
+  save() {
+    try {
+      node_fs.writeFileSync(`${this.#pid}.json`, JSON.stringify(this.state));
+      this.#logger.debug(`Saved state: ${JSON.stringify(this.state)}`);
+    } catch (e) {
+      this.#logger.error(`Failed to save state`);
     }
   }
 
