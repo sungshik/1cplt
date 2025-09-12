@@ -1,0 +1,21 @@
+global @alice(i, n: number)
+{
+  main:
+    i := 0 ;
+    while 
+      i < n
+    do
+      inc ; 
+      "hello, world" -> @bob.s |>
+        \echo s
+
+  inc:
+    i := i + 1
+}
+
+global @bob(s: string)
+
+process @alice(0, 5)
+process @bob("")
+
+#analyze
