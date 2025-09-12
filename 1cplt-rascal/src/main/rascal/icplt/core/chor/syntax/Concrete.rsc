@@ -9,7 +9,8 @@ syntax ChorType
     ;
 
 syntax ChorExpression
-    = ChorVariable
+    = Escape DataExpression*
+    | ChorVariable
     | DataVariable ":=" DataExpression
     | DataExpression "-\>" DataExpression "." DataVariable
     | "{" ChorExpression "}"
@@ -19,6 +20,13 @@ syntax ChorExpression
     | "while" DataExpression "do" ChorExpression
     > DataExpression "." ChorExpression
     > left seq: ChorExpression ";" ChorExpression
+    ;
+
+lexical Escape
+    = @category="decorator" "\\load"
+    | @category="decorator" "\\save"
+    | @category="decorator" "\\echo"
+    | @category="decorator" "\\ping"
     ;
 
 lexical ChorVariable

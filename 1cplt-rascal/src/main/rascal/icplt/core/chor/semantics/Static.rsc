@@ -1,10 +1,10 @@
 module icplt::core::\chor::\semantics::Static
 
+import List;
 import Message;
-import util::Maybe;
-
 import icplt::core::\chor::\syntax::Abstract;
 import icplt::core::\data::\semantics::Static;
+import util::Maybe;
 
 /*
  * Contexts
@@ -65,11 +65,21 @@ default Maybe[CHOR_TYPE] infer(CHOR_CONTEXT _, CHOR_EXPRESSION _)
 
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = [error("Unexpected name `<p>`", e.src)] when !inContext(p, c) ;
-
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION _: CHOR_EXPRESSION::err())
     = [] when inContext(p, c) ;
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION _: skip())
     = [] when inContext(p, c) ;
+list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: esc(f, args))
+    = [error("Expected number of arguments: 0. Actual: <size(args)>", e.fSrc) | [] !:= args]
+    when inContext(p, c), f in {"\\load", "\\save"};
+list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: esc("\\echo", args))
+    = [error("Expected number of arguments: 1. Actual: <size(args)>", e.fSrc) | [_] !:= args]
+    + [*analyze(context(c.gammas[p]), eData) | [eData] := args]
+    when inContext(p, c) ;
+list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: esc("\\ping", args))
+    = [error("Expected number of arguments: 1. Actual: <size(args)>", e.fSrc) | [_] !:= args]
+    + [*check(number(), context(c.gammas[p]), eData) | [eData] := args] 
+    when inContext(p, c) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: CHOR_EXPRESSION::var(x))
     = [error("Unexpected choreography variable", e.src) | x notin c.deltas[p]]
     + [error("Expected choreography type: `<toStr(t)>`. Actual: `<toStr(c.deltas[p][x])>`.", e.src) | x in c.deltas[p], t != c.deltas[p][x]]
@@ -99,9 +109,20 @@ list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq
 default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = [error("Expected choreograpy type: `<toStr(t)>`. Actual: <actual(c, e)>.", e.src)] ;
 
-@autoName test bool _d8f3d2ca09ff1d772a7da01ddc8b2eb3() = check(chor("@carol"), c2, skip()) != [] ;
 @autoName test bool _99b29139a064808f492eea2834015a52() = check(chor("@alice"), c2, CHOR_EXPRESSION::err()) == [] ;
 @autoName test bool _962e53d57a4937b425486ac7220b6f21() = check(chor("@alice"), c2, skip()) == [] ;
+@autoName test bool _d8f3d2ca09ff1d772a7da01ddc8b2eb3() = check(chor("@carol"), c2, skip()) != [] ;
+@autoName test bool _5e8b75c3c68a7039b83afac5824ab05f() = check(chor("@alice"), c2, esc("\\load", [])) == [] ;
+@autoName test bool _a7c1fdc815c631096e237894c3619dfe() = check(chor("@alice"), c2, esc("\\load", [val(5)])) != [] ;
+@autoName test bool _67066b09dc1bd21a1f3bd6b144790fec() = check(chor("@alice"), c2, esc("\\save", [])) == [] ;
+@autoName test bool _cab174da194388c397bf508c5a9e4d0f() = check(chor("@alice"), c2, esc("\\save", [val(5)])) != [] ;
+@autoName test bool _0a19c055995cf36ad5bde9e7547908a1() = check(chor("@alice"), c2, esc("\\echo", [val(5)])) == [] ;
+@autoName test bool _44234ec8e442e7dac41801387b78060a() = check(chor("@alice"), c2, esc("\\echo", [val(5), val(6)])) != [] ;
+@autoName test bool _2a7f7dd68699e172eee8d85fba06c8ac() = check(chor("@alice"), c2, esc("\\echo", [app("-", [val(5), val(true)])])) != [] ;
+@autoName test bool _e5e674e602e78e3146374b0b806132ab() = check(chor("@alice"), c2, esc("\\ping", [val(5)])) == [] ;
+@autoName test bool _ead3c0e86cb782db7840b62b7784d393() = check(chor("@alice"), c2, esc("\\ping", [val("foo")])) != [] ;
+@autoName test bool _7aa8c920c2750a3200898112aeebc292() = check(chor("@alice"), c2, esc("\\ping", [val(5), val(6)])) != [] ;
+@autoName test bool _f6d5284dd0e3fe8cc6c0c7a94451bbdd() = check(chor("@alice"), c2, esc("\\ping", [app("-", [val(5), val(true)])])) != [] ;
 @autoName test bool _0203f092fc2795454a0dcb7df167754f() = check(chor("@alice"), c2, CHOR_EXPRESSION::var("f")) == [] ;
 @autoName test bool _e35809cf4ede85aac05fe7f13fc77103() = check(chor("@alice"), c2, CHOR_EXPRESSION::var("g")) != [] ;
 @autoName test bool _409437fdc8091251a897af424d17d55e() = check(chor("@alice"), c2, CHOR_EXPRESSION::var("h")) != [] ;

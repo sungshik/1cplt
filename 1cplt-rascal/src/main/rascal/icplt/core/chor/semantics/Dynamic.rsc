@@ -40,6 +40,8 @@ tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_E
     = <s, e> ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION e: skip()>)
     = <s, e> ;
+tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION e: esc(_, _)>)
+    = <s, e> ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION _: CHOR_EXPRESSION::var(x)>)
     = <s, s.psi[x]> ;
 tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {}), CHOR_EXPRESSION _: asgn(xData, eData)>)
@@ -68,6 +70,7 @@ tuple[CHOR_STATE, CHOR_EXPRESSION] reduce(<CHOR_STATE s: state(_, _, {<_, e1>}),
     = <s[chi = {}], seq(e, e1)> ;
 
 @autoName test bool _24b15bb3b686f3f01a90c07281119a42() = reduce(<s2, CHOR_EXPRESSION::err()>) == <s2, CHOR_EXPRESSION::err()> ;
+@autoName test bool _271c930a7f811fc273dacc9397a50b6b() = reduce(<s2, esc("\\echo", [val(5)])>) == <s2, esc("\\echo", [val(5)])> ;
 @autoName test bool _7c8547314d294a8c1661adc173aecb96() = reduce(<s2, skip()>) == <s2, skip()> ;
 @autoName test bool _d79866851bffed4a826acb6cc5a020dc() = reduce(<s2, CHOR_EXPRESSION::var("f")>) == <s2, asgn("b", val(false))> ;
 @autoName test bool _47944926e01ca5a5cff95a3e94c4aeab() = reduce(<s2, asgn("b", app("!=", [var("i"), val(5)]))>) == <s2[phi = s2.phi + ("b": val(false))], skip()> ;
