@@ -26,7 +26,7 @@ lexical Escape
     = @category="decorator" "\\load"
     | @category="decorator" "\\save"
     | @category="decorator" "\\echo"
-    | @category="decorator" "\\wait"
+    | @category="decorator" "\\ping"
     ;
 
 lexical ChorVariable
