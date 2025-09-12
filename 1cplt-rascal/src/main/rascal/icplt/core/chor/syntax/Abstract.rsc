@@ -2,8 +2,6 @@ module icplt::core::\chor::\syntax::Abstract
 extend icplt::core::\data::\syntax::Abstract;
 extend icplt::core::\util::\syntax::Abstract;
 
-import ParseTree;
-
 import icplt::core::\chor::\syntax::Concrete;
 
 /*
@@ -28,6 +26,7 @@ str toStr(CHOR_TYPE _: chor(r))
 data CHOR_EXPRESSION(loc src = |unknown:///|)
     = err()
     | skip()
+    | esc(str f, list[DATA_EXPRESSION] args, loc fSrc = |unknown:///|)
     | var(CHOR_VARIABLE x)
     | asgn(DATA_VARIABLE xData, DATA_EXPRESSION eData, loc xDataSrc = |unknown:///|)
     | comm(DATA_EXPRESSION eData1, DATA_EXPRESSION eData2, DATA_VARIABLE xData, CHOR_EXPRESSION e1, loc xDataSrc = |unknown:///|)
@@ -37,6 +36,8 @@ data CHOR_EXPRESSION(loc src = |unknown:///|)
     | seq(CHOR_EXPRESSION e1, CHOR_EXPRESSION e2)
     ;
 
+CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<Escape f> <DataExpression* args>`)
+    = esc("<f>", [toAbstract(arg) | arg <- args]) [src = e.src] [fSrc = f.src] ;
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<ChorVariable x>`)
     = CHOR_EXPRESSION::var(toAbstract(x)) [src = e.src] ;
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<DataVariable xData> := <DataExpression eData>`)
@@ -58,6 +59,7 @@ CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<DataExpression eData>.<ChorExpr
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<ChorExpression e1> ; <ChorExpression e2>`)
     = seq(toAbstract(e1), toAbstract(e2)) [src = e.src] ;
 
+@autoName test bool _583f3d22d06ece7c73572b6772e66d28() = compare(toAbstract(parse(#ChorExpression, "\\echo 5")), esc("\\echo", [val(5)])) ;
 @autoName test bool _85e62f21d42a95037af721f8390a397c() = compare(toAbstract(parse(#ChorExpression, "main")), CHOR_EXPRESSION::var("main")) ;
 @autoName test bool _1328850d06a0378af47fff5936681b1a() = compare(toAbstract(parse(#ChorExpression, "i := 5")), asgn("i", val(5))) ;
 @autoName test bool _ce1f6976ad7ad1e5946204ae003902fc() = compare(toAbstract(parse(#ChorExpression, "5 -\> @alice[5].i")), comm(val(5), val(<"@alice", 5>), "i", skip())) ;
