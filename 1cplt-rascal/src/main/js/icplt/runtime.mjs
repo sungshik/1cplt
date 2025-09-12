@@ -1,3 +1,4 @@
+import * as node_fs from "node:fs";
 import { Process } from "./process.mjs";
 import { Library } from "./library.mjs";
 
@@ -7,10 +8,12 @@ export class Runtime {
 
   #pid;
   #logger;
+  #delay;
 
   constructor(pid, logger) {
     this.#pid = pid;
     this.#logger = logger;
+    this.#delay = 1;
   }
 
   conn(pid, port, hostname) {
@@ -20,7 +23,7 @@ export class Runtime {
 
   init(state) {
     this.state = { ...this.state, ...state };
-    this.#logger.debug(`Initialised state to ${JSON.stringify(this.state)}`);
+    this.#logger.debug(`Initialised state: ${JSON.stringify(this.state)}`);
   }
 
   main() {
@@ -32,16 +35,44 @@ export class Runtime {
     Library.procedures[role][label](this);
   }
 
-  async send(host, message, variable, label) {
+  send(host, message, variable, label) {
     const argv = ["recv", this.state["self"], message, variable, label];
     this.#logger.debug(`Sending ${JSON.stringify(message)} to ${host.pid}...`);
-    await Process.fetch(host, argv);
+    setTimeout(() => Process.fetch(host, argv), this.#delay);
+    this.#delay = 1;
   }
 
   recv(host, message, variable, label) {
     this.#logger.debug(`Received ${JSON.stringify(message)} from ${host.pid}`);
     this.state[variable] = message;
     this.call(label);
+  }
+
+  save() {
+    try {
+      node_fs.writeFileSync(`${this.#pid}.json`, JSON.stringify(this.state));
+      this.#logger.debug(`Saved state: ${JSON.stringify(this.state)}`);
+    } catch (e) {
+      this.#logger.error(`Failed to save state`);
+    }
+  }
+
+  load() {
+    try {
+      const state = JSON.parse(node_fs.readFileSync(`${this.#pid}.json`));
+      this.state = { ...this.state, ...state };
+      this.#logger.debug(`Loaded state: ${JSON.stringify(this.state)}`);
+    } catch (e) {
+      this.#logger.error(`Failed to load state`);
+    }
+  }
+
+  echo(value) {
+    this.#logger.info(JSON.stringify(value));
+  }
+
+  ping(delay) {
+    this.#delay = delay;
   }
 
   static roleOf(pid) {
