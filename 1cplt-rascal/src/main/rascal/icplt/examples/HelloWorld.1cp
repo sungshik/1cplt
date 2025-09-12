@@ -1,14 +1,19 @@
 global @alice(i, n: number)
 {
   main:
+    \save ;
     i := 0 ;
     while 
       i < n
-    do
-      inc ; 
+    do {
+      inc ;
+      \ping 200 ;
       "hello, world" -> @bob.s |>
         \echo s
-
+    } ;
+    \load ;
+    \echo {i: i, n: n}
+  
   inc:
     i := i + 1
 }
@@ -19,3 +24,5 @@ process @alice(0, 5)
 process @bob("")
 
 #analyze
+#compile
+#execute
