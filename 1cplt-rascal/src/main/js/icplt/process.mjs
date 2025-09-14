@@ -99,7 +99,31 @@ export class Process {
   }
 
   static async awaitTermination(hosts, callback) {
-    await fetch(resource, { method: method, body: body });
+    let mainBeginCount = 0;
+    let mainEndCount = 0;
+    let sendBeginCount = 0;
+    let recvEndCount = 0;
+
+    for (const host of hosts) {
+      const response = await this.fetch(host, ['stat']);
+      const stats = await response.json();
+      mainBeginCount += stats.mainBeginCount;
+      mainEndCount += stats.mainEndCount;
+      sendBeginCount += stats.sendBeginCount;
+      recvEndCount += stats.recvEndCount;
+    }
+
+    if (
+      mainBeginCount > 0 &&
+      mainBeginCount == mainEndCount &&
+      sendBeginCount == recvEndCount
+    ) {
+      for (const host of hosts) {
+        await this.fetch(host, ['kill']);
+      }
+      callback();
+    } else {
       setTimeout(() => this.awaitTermination(hosts, callback), 1000);
+    }
   }
 }
