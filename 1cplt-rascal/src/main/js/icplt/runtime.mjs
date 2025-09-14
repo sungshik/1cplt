@@ -38,7 +38,7 @@ export class Runtime {
   send(host, message, variable, label) {
     const argv = ["recv", this.state["self"], message, variable, label];
     this.#logger.debug(`Sending ${JSON.stringify(message)} to ${host.pid}...`);
-    setTimeout(() => Process.fetch(host, argv), this.#delay);
+    setTimeout(async () => await Process.fetch(host, argv), this.#delay);
     this.#delay = 1;
   }
 

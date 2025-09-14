@@ -1,11 +1,11 @@
-import * as node_fs from "node:fs";
+import * as node_fs from 'node:fs';
 
 export class Logger {
   #stream;
 
   constructor(path) {
     node_fs.rmSync(path, { force: true });
-    this.#stream = node_fs.createWriteStream(path, { flags: "a" });
+    this.#stream = node_fs.createWriteStream(path, { flags: 'a' });
   }
 
   fatal(message) {
