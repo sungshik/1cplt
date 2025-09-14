@@ -1,6 +1,6 @@
-import * as node_fs from "node:fs";
-import { Process } from "./process.mjs";
-import { Library } from "./library.mjs";
+import * as node_fs from 'node:fs';
+import { Process } from './process.mjs';
+import { Library } from './library.mjs';
 
 export class Runtime {
   hosts = {};
@@ -8,12 +8,32 @@ export class Runtime {
 
   #pid;
   #logger;
+
   #delay;
+
+  #mainBeginCount;
+  #mainEndCount;
+  #sendBeginCount;
+  #recvEndCount;
 
   constructor(pid, logger) {
     this.#pid = pid;
     this.#logger = logger;
     this.#delay = 1;
+
+    this.#mainBeginCount = 0;
+    this.#mainEndCount = 0;
+    this.#sendBeginCount = 0;
+    this.#recvEndCount = 0;
+  }
+
+  get statistics() {
+    return {
+      mainBeginCount: this.#mainBeginCount,
+      mainEndCount: this.#mainEndCount,
+      sendBeginCount: this.#sendBeginCount,
+      recvEndCount: this.#recvEndCount,
+    };
   }
 
   conn(pid, port, hostname) {
@@ -27,7 +47,9 @@ export class Runtime {
   }
 
   main() {
-    this.call("main");
+    this.#mainBeginCount++;
+    this.call('main');
+    this.#mainEndCount++;
   }
 
   call(label) {
@@ -36,9 +58,10 @@ export class Runtime {
   }
 
   send(host, message, variable, label) {
-    const argv = ["recv", this.state["self"], message, variable, label];
+    this.#sendBeginCount++;
+    const argv = ['recv', this.state['self'], message, variable, label];
     this.#logger.debug(`Sending ${JSON.stringify(message)} to ${host.pid}...`);
-    setTimeout(() => Process.fetch(host, argv), this.#delay);
+    setTimeout(async () => await Process.fetch(host, argv), this.#delay);
     this.#delay = 1;
   }
 
@@ -46,6 +69,7 @@ export class Runtime {
     this.#logger.debug(`Received ${JSON.stringify(message)} from ${host.pid}`);
     this.state[variable] = message;
     this.call(label);
+    this.#recvEndCount++;
   }
 
   load() {
