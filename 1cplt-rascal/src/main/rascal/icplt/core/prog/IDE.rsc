@@ -173,8 +173,10 @@ void executionService(directive("#execute", [], start[Prog] input)) {
     loc directory = input.src.parent + "<name>";
 
     int pid = execAsync("node", args = ["main.mjs"], workingDir = directory, callback = void() {
+        loc document = directory + "execution.md";
         println("Ended executing <name> (#<pid>)");
-        edit(directory + "execution.md");
+        edit(document);
+        println("Opened <document>");
     });
     println("Began executing <name> (#<pid>)");
 }

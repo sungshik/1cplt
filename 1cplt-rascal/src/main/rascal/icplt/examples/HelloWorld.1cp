@@ -7,7 +7,7 @@ global @alice(i, n: number)
       i < n
     do {
       inc ;
-      \ping 200 ;
+      \ping i*500 ;
       "hello, world" -> @bob.s |>
         \echo s
     } ;
