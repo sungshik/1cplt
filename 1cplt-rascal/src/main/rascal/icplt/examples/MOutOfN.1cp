@@ -1,4 +1,4 @@
-global @prod(ok: boolean)
+role @prod(ok: boolean)
 {
   main:
     self -> @cons.p |>
@@ -11,7 +11,7 @@ global @prod(ok: boolean)
         false -> p.ok
 }
 
-global @cons(p: @prod, ps: @prod[], m: number)
+role @cons(p: @prod, ps: @prod[], m: number)
 
 process @prod[1](false)
 process @prod[2](false)

@@ -1,9 +1,9 @@
-global @alice(i, n: number)
+role @alice(i, n: number)
 {
   main:
     \save ;
     i := 0 ;
-    while 
+    while
       i < n
     do {
       inc ;
@@ -18,7 +18,7 @@ global @alice(i, n: number)
     i := i + 1
 }
 
-global @bob(s: string)
+role @bob(s: string)
 
 process @alice(0, 5)
 process @bob("")

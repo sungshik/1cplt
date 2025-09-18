@@ -136,5 +136,5 @@ str toLabel(str _: /^<name:[@0-9A-Za-z.]+>$/)
 /*                                 `foreach`                                  */
 /* -------------------------------------------------------------------------- */
 
-str toLabel(str _: /^\(foreach\<[@0-9A-Za-z]+\> <name:[0-9A-Za-z]+>, [0-9]*\).elem$/)
+str toLabel(str _: /^\(foreach\<[@0-9A-Za-z\ :;{}]+\> <name:[0-9A-Za-z]+>, [0-9]*\).elem$/)
     = "<name>." ;

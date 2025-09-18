@@ -119,10 +119,10 @@ default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
 @autoName test bool _0a19c055995cf36ad5bde9e7547908a1() = check(chor("@alice"), c2, esc("\\echo", [val(5)])) == [] ;
 @autoName test bool _44234ec8e442e7dac41801387b78060a() = check(chor("@alice"), c2, esc("\\echo", [val(5), val(6)])) != [] ;
 @autoName test bool _2a7f7dd68699e172eee8d85fba06c8ac() = check(chor("@alice"), c2, esc("\\echo", [app("-", [val(5), val(true)])])) != [] ;
-@autoName test bool _e5e674e602e78e3146374b0b806132ab() = check(chor("@alice"), c2, esc("\\ping", [val(5)])) == [] ;
-@autoName test bool _ead3c0e86cb782db7840b62b7784d393() = check(chor("@alice"), c2, esc("\\ping", [val("foo")])) != [] ;
-@autoName test bool _7aa8c920c2750a3200898112aeebc292() = check(chor("@alice"), c2, esc("\\ping", [val(5), val(6)])) != [] ;
-@autoName test bool _f6d5284dd0e3fe8cc6c0c7a94451bbdd() = check(chor("@alice"), c2, esc("\\ping", [app("-", [val(5), val(true)])])) != [] ;
+@autoName test bool _9f2bd5c63a9b0ee07a096eae0ecbb510() = check(chor("@alice"), c2, esc("\\ping", [val(5)])) == [] ;
+@autoName test bool _1710bdcc1f14f0aab10f2d0fd5f04a24() = check(chor("@alice"), c2, esc("\\ping", [val("foo")])) != [] ;
+@autoName test bool _5722ef7335e56f62eca85c1e40ccb39e() = check(chor("@alice"), c2, esc("\\ping", [val(5), val(6)])) != [] ;
+@autoName test bool _4ed1913a8252f77f81959c6546b96100() = check(chor("@alice"), c2, esc("\\ping", [app("-", [val(5), val(true)])])) != [] ;
 @autoName test bool _0203f092fc2795454a0dcb7df167754f() = check(chor("@alice"), c2, CHOR_EXPRESSION::var("f")) == [] ;
 @autoName test bool _e35809cf4ede85aac05fe7f13fc77103() = check(chor("@alice"), c2, CHOR_EXPRESSION::var("g")) != [] ;
 @autoName test bool _409437fdc8091251a897af424d17d55e() = check(chor("@alice"), c2, CHOR_EXPRESSION::var("h")) != [] ;

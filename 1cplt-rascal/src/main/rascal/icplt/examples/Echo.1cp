@@ -1,4 +1,4 @@
-global @node(
+role @node(
   init: boolean,
   neighs, senders: @node[],
   parent, sender:  @node)
