@@ -91,11 +91,11 @@ CHOR_VARIABLE toAbstract(x: (ChorVariable) _)
 
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `foreach\<<DataType tData>\> <DataVariable xData> in <DataExpression eData> do <ChorExpression e1>`)
     = seq(
-        asgn(xDataColl, toAbstract(eData)),
+        asgn(xDataColl, toAbstract(eData)) [src = eData.src],
         loop(
             app("!=", [app("length", [var(xDataColl)]), val(0)]),
             seq(
-                asgn("<xDataElem>", app("??", [app("aaccess", [var(xDataColl), val(0)]), defaultOf(toAbstract(tData))])),
+                asgn("<xDataElem>", app("??", [app("aaccess", [var(xDataColl), val(0)]), defaultOf(toAbstract(tData)) [src = xData.src]])),
                 seq(
                     substVar("<xData>", xDataElem, toAbstract(e1)),
                     asgn(xDataColl, app("slice", [var(xDataColl), val(1)]))
@@ -109,13 +109,13 @@ CHOR_EXPRESSION toAbstract(e: (ChorExpression) `foreach\<<DataType tData>\> <Dat
 map[DATA_VARIABLE, DATA_TYPE] toGammaForeach(CHOR_EXPRESSION e) {
     map[DATA_VARIABLE, DATA_TYPE] gamma = ();
 
-    for (/asgn(/^\(foreach\<<s1:[@0-9A-Za-z]+>\> <s2:[0-9A-Za-z]+>, <offset:[0-9]*>\).coll$/, _) := e) {
+    for (/asgn(/^\(foreach\<<s1:[@0-9A-Za-z :;{}]+>\> <s2:[0-9A-Za-z]+>, <offset:[0-9]*>\).coll$/, _) := e) {
         DATA_TYPE tData = toAbstract(parse(#DataType, s1));
         DATA_VARIABLE xData = s2;
 
         gamma += (
-            "(foreach\<<toStr(tData)>\> <xData>, <offset>).coll": array(tData),
-            "(foreach\<<toStr(tData)>\> <xData>, <offset>).elem": tData
+            "(foreach\<<s1>\> <xData>, <offset>).coll": array(tData),
+            "(foreach\<<s1>\> <xData>, <offset>).elem": tData
         );
     }
 
