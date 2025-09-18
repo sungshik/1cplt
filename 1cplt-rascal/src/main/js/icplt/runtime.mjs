@@ -100,6 +100,13 @@ export class Runtime {
   }
 
   static roleOf(pid) {
-    return pid.match(/([0-9A-Za-z@]+)(?:\[([0-9]+)\])?/)[1];
+    const end = pid.lastIndexOf('[');
+    return -1 < end ? pid.substring(0, end) : pid;
+  }
+
+  static rankOf(pid) {
+    const start = pid.lastIndexOf('[') + 1;
+    const end = pid.lastIndexOf(']');
+    return -1 < start && -1 < end ? Number(pid.substring(start, end)) : 0;
   }
 }
