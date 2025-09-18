@@ -3,7 +3,7 @@ role @alice(i, n: number)
   main:
     \save ;
     i := 0 ;
-    while 
+    while
       i < n
     do {
       inc ;

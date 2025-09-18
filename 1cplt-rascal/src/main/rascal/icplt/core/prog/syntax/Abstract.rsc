@@ -18,7 +18,7 @@ data PROG_EXPRESSION(loc src = |unknown:///|)
 
 PROG_EXPRESSION toAbstract(e: (ProgExpression) `<RoleDefinition _>`)
     = toAbstract(e.args[0]) ;
-PROG_EXPRESSION toAbstract(e: (ProgExpression) `<Process _>`)
+PROG_EXPRESSION toAbstract(e: (ProgExpression) `<ProcessDefinition _>`)
     = toAbstract(e.args[0]) ;
 PROG_EXPRESSION toAbstract(e: (ProgExpression) `<Directive _>`)
     = empty() [src = e.src] ;
@@ -30,7 +30,7 @@ PROG_EXPRESSION toAbstract(e: (ProgExpression) `<ProgExpression e1> <ProgExpress
 @autoName test bool _0d58009016b73b8d3b74369c80d1e905() = compare(toAbstract(parse(#ProgExpression, "role @alice() role @bob() role @carol()")), seq(seq(glob("@alice", [], [proced("main", skip())]), glob("@bob", [], [proced("main", skip())])), glob("@carol", [], [proced("main", skip())]))) ;
 
 /*
- * Expressions: Roles
+ * Expressions: Role Definitions
  */
 
 PROG_EXPRESSION toAbstract(e: (RoleDefinition) `role <Role r>(<{FormalParameter ","}* formals>)`)
@@ -47,20 +47,20 @@ private list[PROCEDURE] addMain(list[PROCEDURE] proceds)
     = proceds + ((/proced("main", _) := proceds) ? [] : [proced("main", skip())]) ;
 
 /*
- * Expressions: Processes
+ * Expressions: Process Definitions
  */
 
-PROG_EXPRESSION toAbstract(e: (Process) `process <Pid rk>(<{ActualParameter ","}* actuals>)`)
+PROG_EXPRESSION toAbstract(e: (ProcessDefinition) `process <Pid rk>(<{ActualParameter ","}* actuals>)`)
     = proc(toAbstract(rk), [toAbstract(actual) | actual <- actuals], CHOR_EXPRESSION::var("main")) [src = e.src] [rkSrc = rk.src] ;
-PROG_EXPRESSION toAbstract(e: (Process) `process <Pid rk>(<{ActualParameter ","}* actuals>) |\> <ChorExpression eChor>`)
+PROG_EXPRESSION toAbstract(e: (ProcessDefinition) `process <Pid rk>(<{ActualParameter ","}* actuals>) |\> <ChorExpression eChor>`)
     = proc(toAbstract(rk), [toAbstract(actual) | actual <- actuals], toAbstract(eChor)) [src = e.src] [rkSrc = rk.src] ;
 
-@autoName test bool _b0afc7b971277fd5521d555a292513ef() = compare(toAbstract(parse(#Process, "process @alice[5]()")), proc(<"@alice", 5>, [], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _02bf104e8a391d355faf8c3e7031e6f9() = compare(toAbstract(parse(#Process, "process @alice[5](5, 6)")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _7759626afa3f2ce5ba0f2685b5f93b09() = compare(toAbstract(parse(#Process, "process @bob(5, 6)")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _ddddd996bb74644b1c2c5ca689a90aef() = compare(toAbstract(parse(#Process, "process @alice[5]() |\> n := 5")), proc(<"@alice", 5>, [], asgn("n", val(5)))) ;
-@autoName test bool _2fa9e77b4fa65948677285b69057c4f4() = compare(toAbstract(parse(#Process, "process @alice[5](5, 6) |\> n := 5")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
-@autoName test bool _82c9ab2c0f73d191da1272716f625339() = compare(toAbstract(parse(#Process, "process @bob(5, 6) |\> n := 5")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
+@autoName test bool _b0afc7b971277fd5521d555a292513ef() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5]()")), proc(<"@alice", 5>, [], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _02bf104e8a391d355faf8c3e7031e6f9() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5](5, 6)")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _7759626afa3f2ce5ba0f2685b5f93b09() = compare(toAbstract(parse(#ProcessDefinition, "process @bob(5, 6)")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _ddddd996bb74644b1c2c5ca689a90aef() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5]() |\> n := 5")), proc(<"@alice", 5>, [], asgn("n", val(5)))) ;
+@autoName test bool _2fa9e77b4fa65948677285b69057c4f4() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5](5, 6) |\> n := 5")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
+@autoName test bool _82c9ab2c0f73d191da1272716f625339() = compare(toAbstract(parse(#ProcessDefinition, "process @bob(5, 6) |\> n := 5")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
 
 /*
  * Procedures

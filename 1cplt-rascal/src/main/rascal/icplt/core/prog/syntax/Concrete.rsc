@@ -7,7 +7,7 @@ start syntax Prog = ProgExpression ;
 
 syntax ProgExpression
     = RoleDefinition
-    | Process
+    | ProcessDefinition
     | Directive
     > left ProgExpression ProgExpression
     ;
@@ -19,7 +19,7 @@ syntax RoleDefinition
 
 syntax Procedure = ChorVariable ":" ChorExpression ;
 
-syntax Process
+syntax ProcessDefinition
     = "process" Pid "(" {ActualParameter ","}* ")"
     | "process" Pid "(" {ActualParameter ","}* ")" "|\>" ChorExpression
     ;
