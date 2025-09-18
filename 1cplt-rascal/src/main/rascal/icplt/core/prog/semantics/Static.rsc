@@ -61,7 +61,7 @@ list[Message] analyze(PROG_CONTEXT c, PROG_EXPRESSION e) {
     messages += [warning("Duplicate name", glob.rSrc)  | glob <- duplicateGlobs];
     messages += [warning("Duplicate name", proc.rkSrc) | proc <- duplicateProcs];
 
-    // Check well-typedness of globals
+    // Check well-typedness of roles
     c = toProgContext(e);
     CHOR_CONTEXT cChor = CHOR_CONTEXT::context(c.gammas, c.deltas);
     messages += [*check(chor(r), cChor, eChor)| /glob(r, _, [*_, proced(_, eChor), *_]) := e];

@@ -6,15 +6,15 @@ extend icplt::core::\util::\syntax::Concrete;
 start syntax Prog = ProgExpression ;
 
 syntax ProgExpression
-    = Global
+    = RoleDefinition
     | Process
     | Directive
     > left ProgExpression ProgExpression
     ;
 
-syntax Global
-    = "global" Role "(" {FormalParameter ","}* ")"
-    | "global" Role "(" {FormalParameter ","}* ")" "{" Procedure* "}"
+syntax RoleDefinition
+    = "role" Role "(" {FormalParameter ","}* ")"
+    | "role" Role "(" {FormalParameter ","}* ")" "{" Procedure* "}"
     ;
 
 syntax Procedure = ChorVariable ":" ChorExpression ;
@@ -31,6 +31,6 @@ syntax Directive = @category="decorator" [#] (Alpha (Alnum | [_])*) !>> [0-9 A-Z
 
 keyword ProgKeyword =
     | "process"
-    | "global"
+    | "role"
     | "self"
     ;

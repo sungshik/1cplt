@@ -1,4 +1,4 @@
-global @client(input: number[], sum, n: number)
+role @client(input: number[], sum, n: number)
 {
   main:
     sum := 0 ;
@@ -18,7 +18,7 @@ global @client(input: number[], sum, n: number)
     }
 }
 
-global @server(req: {n1: number; n2: number; c: @client}, resp: number)
+role @server(req: {n1: number; n2: number; c: @client}, resp: number)
 
 process @client[5]([5, 6, 7, 8], 0, 0)
 process @client[6]([1, 2, 3], 0, 0)

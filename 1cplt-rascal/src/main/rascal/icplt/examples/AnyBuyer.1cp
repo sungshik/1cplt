@@ -1,4 +1,4 @@
-global @buyer1(x, f: number, neigh: @buyeri)
+role @buyer1(x, f: number, neigh: @buyeri)
 {
   main:
     "foo" -> @seller.title |> {
@@ -12,7 +12,7 @@ global @buyer1(x, f: number, neigh: @buyeri)
     }
 }
 
-global @buyeri(
+role @buyeri(
   x, y, f: number,
   last: boolean,
   neigh: @buyeri)
@@ -30,7 +30,7 @@ global @buyeri(
     }
 }
 
-global @seller(
+role @seller(
   title: string,
   result: boolean,
   neighs: @buyeri[])
