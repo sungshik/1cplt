@@ -29,9 +29,9 @@ syntax DataExpression
     | DataExpression!comma "as" DataType
     | [(] DataExpression [)]
     > left DataExpression!comma [.] DataVariable
-    | left DataExpression!comma [.] Concat [(] DataExpression!comma [)]
-    | left DataExpression!comma [.] Slice [(] DataExpression!comma [)]
-    | left DataExpression!comma [.] Slice [(] DataExpression!comma [,] DataExpression!comma [)]
+    | left DataExpression!comma [.] Nullary
+    | left DataExpression!comma [.] Unary [(] DataExpression!comma [)]
+    | left DataExpression!comma [.] Binary [(] DataExpression!comma [,] DataExpression!comma [)]
     | () !>> [@] DataExpression!comma [\[] DataExpression!comma [\]]
     > Prefix DataExpression!comma
     > right DataExpression!comma Exponentiation DataExpression!comma
@@ -50,8 +50,9 @@ syntax DataExpressionEntry
     | "..." DataExpression!comma
     ;
 
-lexical Concat             = @category="operator" "concat" ;
-lexical Slice              = @category="operator" "slice" ;
+lexical Nullary            = @category="operator" ("role" | "rank" | "length");
+lexical Unary              = @category="operator" ("concat" | "slice") ;
+lexical Binary             = @category="operator" "slice" ;
 lexical Prefix             = @category="operator" [! + \-] ;
 lexical Exponentiation     = @category="operator" "**" ;
 lexical Multiplication     = @category="operator" [* / %] ;
@@ -100,4 +101,7 @@ keyword DataKeyword
     | "true"
     | "false"
     | "self"
+    | "role"
+    | "rank"
+    | "length"
     ;

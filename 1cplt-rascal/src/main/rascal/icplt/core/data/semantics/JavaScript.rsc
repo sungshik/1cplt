@@ -30,6 +30,9 @@ str toJavaScript(DATA_EXPRESSION _: app(f, args))
     = "{<intercalate(", ", [toJavaScript(ei) | ei <- args])>}"
     when f in {"object"} ;
 str toJavaScript(DATA_EXPRESSION _: app(f, [e1]))
+    = "runtime.constructor.<f>Of(<toJavaScript(e1)>.pid)"
+    when f in {"role", "rank"} ;
+str toJavaScript(DATA_EXPRESSION _: app(f, [e1]))
     = "<toJavaScript(e1)>.length"
     when f in {"length"} ;
 str toJavaScript(DATA_EXPRESSION _: app(f, [e1, e2]))

@@ -169,6 +169,8 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
  * Reduction: Numbers
  */
 
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("rank", [val(<_, NUMBER k>)])>)
+    = <s, val(k)> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("length", [val(ARRAY a)])>)
     = <s, val(size(a))> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("+",  [val(NUMBER n)])>)
@@ -188,6 +190,7 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("**", [val(NUMBER n1), val(NUMBER n2)])>)
     = <s, val(toInt(pow(n1, n2)))> ;
 
+@autoName test bool _a9b20f21a17962d2037c9f5e28eebc94() = reduce(<s1, app("rank", [val(<"@alice", 5>)])>) == <s1, val(5)> ;
 @autoName test bool _9d249a84f43b0f1e6aa1e7bedaac9ee6() = reduce(<s1, app("length", [val([])])>) == <s1, val(0)> ;
 @autoName test bool _2104f961ab8297119621da333c6b36e3() = reduce(<s1, app("length", [val([5, 6, 7])])>) == <s1, val(3)> ;
 @autoName test bool _40f15e0f733b0921e7be813872d53923() = reduce(<s1, app("+", [val(5)])>) == <s1, val(5)> ;
@@ -208,9 +211,12 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
  * Reduction: Strings
  */
 
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("role", [val(<STRING r, _>)])>)
+    = <s, val(r)> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("+", [val(STRING s1), val(STRING s2)])>)
     = <s, val(s1 + s2)> ;
 
+@autoName test bool _70d711bf69fce215f646ed4002a7d513() = reduce(<s1, app("role", [val(<"@alice", 5>)])>) == <s1, val("@alice")> ;
 @autoName test bool _8ba91f37db765fbee1bbfbfa62c83bd6() = reduce(<s1, app("+", [val("foo"), val("bar")])>) == <s1, val("foobar")> ;
 @autoName test bool _33a73e4b66fdb115ea776605009dd3d8() = reduce(<s1, app("+", [val("foo"), val("")])>) == <s1, val("foo")> ;
 @autoName test bool _16b9db69d83650a63ba88e104a41a57a() = reduce(<s1, app("+", [val(""), val("bar")])>) == <s1, val("bar")> ;

@@ -127,13 +127,14 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: app(f, [_, _]))
 Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: val(NUMBER _))
     = just(number()) ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: app(f, [_]))
-    = just(number()) when f in {"length", "-", "+"} ;
+    = just(number()) when f in {"rank", "length", "-", "+"} ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: app(f, [_, _]))
     = just(number()) when f in {"-", "*", "/", "%", "**"} ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("+", [e1, e2]))
     = just(number()) when just(number()) := infer(c, e1), just(number()) := infer(c, e2) ;
 
 @autoName test bool _cfdd88fc5c4bcc9e5f9968375f628555() = infer(c1, val(5)) == just(number()) ;
+@autoName test bool _c06ea3a2cd2ae4dca0e1279b6c1d985e() = infer(c1, app("rank", [val(<"@alice", 5>)])) == just(number()) ;
 @autoName test bool _43f4874d8f6e0060a69f3bad84111112() = infer(c1, app("length", [val([])])) == just(number()) ;
 @autoName test bool _c981e70759dccd0c78e10716a03fd827() = infer(c1, app("+", [val(5)])) == just(number()) ;
 @autoName test bool _79a5a515dce41ae39151fedc440b6940() = infer(c1, app("-", [val(5)])) == just(number()) ;
@@ -152,10 +153,13 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("+", [e1, e2]))
 
 Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: val(STRING _))
     = just(string()) ;
+Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: app(f, [_]))
+    = just(string()) when f in {"role"} ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("+", [e1, e2]))
     = just(string()) when just(string()) := infer(c, e1), just(string()) := infer(c, e2) ;
 
 @autoName test bool _82821fec7444ca966b08b496b71e8122() = infer(c1, val("foo")) == just(string()) ;
+@autoName test bool _2387bee8802ad3829f8f68c49dfd0f8d() = infer(c1, app("role", [val(<"@alice", 5>)])) == just(string()) ;
 @autoName test bool _5f001d8ea134c7eb39420d332aee3ab2() = infer(c1, app("+", [val("foo"), val("bar")])) == just(string()) ;
 @autoName test bool _4d7e957e8314705caf956f12edf8ca82() = infer(c1, app("+", [val("foo"), val(false)])) == nothing() ;
 @autoName test bool _72e75dcb9712fad722bafc4659fe4666() = infer(c1, app("+", [val(true), val("bar")])) == nothing() ;
@@ -378,6 +382,8 @@ list[Message] check(DATA_TYPE _: boolean(), DATA_CONTEXT c, DATA_EXPRESSION _: a
 list[Message] check(DATA_TYPE _: number(), DATA_CONTEXT _, DATA_EXPRESSION _: val(NUMBER _))
     = [] ;
 list[Message] check(DATA_TYPE _: number(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1]))
+    = [error("Expected data type: any pid. Actual: <actual(maybe)>", e1.src) | maybe := infer(c, e1), just(pid(_)) !:= maybe] when f in {"rank"} ;
+list[Message] check(DATA_TYPE _: number(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1]))
     = [error("Expected data type: any array. Actual: <actual(maybe)>.", e1.src) | maybe := infer(c, e1), just(array(_)) !:= maybe]
     + [*check(array(t), c, e1) | just(array(t)) := infer(c, e1)]
     when f in {"length"} ;
@@ -387,6 +393,8 @@ list[Message] check(DATA_TYPE _: number(), DATA_CONTEXT c, DATA_EXPRESSION _: ap
     = check(number(), c, e1) + check(number(), c, e2) when f in {"+", "-", "*", "/", "%", "**"} ;
 
 @autoName test bool _aa853b56bfc9d7c7342723a0f79392a4() = check(number(), c1, val(5)) == [] ;
+@autoName test bool _7bc5ea5ec2934a517efd70b38dadb03d() = check(number(), c1, app("rank", [val(<"@alice", 5>)])) == [] ;
+@autoName test bool _5b2a933e4aa0c26c9d5dfbcc2c86acba() = check(number(), c1, app("rank", [val(false)])) != [] ;
 @autoName test bool _bde4f4a0bf77456da7dde96d901ee2ec() = check(number(), c1, app("length", [val([5])])) == [] ;
 @autoName test bool _389d9fb332c88dd8adaae1b80bf509c7() = check(number(), c1, app("length", [val(false)])) != [] ;
 @autoName test bool _8adbbe758b3165543bd3587dbc2df548() = check(number(), c1, app("+", [val(5)])) == [] ;
@@ -402,10 +410,14 @@ list[Message] check(DATA_TYPE _: number(), DATA_CONTEXT c, DATA_EXPRESSION _: ap
 
 list[Message] check(DATA_TYPE _: string(), DATA_CONTEXT _, DATA_EXPRESSION _: val(STRING _))
     = [] ;
+list[Message] check(DATA_TYPE _: string(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1]))
+    = [error("Expected data type: any pid. Actual: <actual(maybe)>", e1.src) | maybe := infer(c, e1), just(pid(_)) !:= maybe] when f in {"role"} ;
 list[Message] check(DATA_TYPE _: string(), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1, e2]))
     = check(string(), c, e1) + check(string(), c, e2) when f in {"+"} ;
 
 @autoName test bool _90003fa25b3328b6844e35bdc9360d5f() = check(string(), c1, val("foo")) == [] ;
+@autoName test bool _f194c40ebc27331860e76d91a934decf() = check(string(), c1, app("role", [val(<"@alice", 5>)])) == [] ;
+@autoName test bool _414b9b907ad04fba863647184b9562cf() = check(string(), c1, app("role", [val(false)])) != [] ;
 @autoName test bool _3f3d927ee19c7ce561b396d8201d09c7() = ret := check(string(), c1, app("+", [val("foo"), val("bar")])) && [] == ret ;
 @autoName test bool _c6d4488214cd3a1b69474e36c3fdfc75() = ret := check(string(), c1, app("+", [val("foo"), val(false)])) && [_] := ret ;
 @autoName test bool _bcc5e8c5c8362a4df20ace8fd3e5ff1f() = ret := check(string(), c1, app("+", [val(true), val("bar")])) && [_] := ret ;
