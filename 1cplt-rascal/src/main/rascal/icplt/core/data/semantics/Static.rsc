@@ -221,6 +221,9 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("slice", [e1, *_])
  * Inference: Objects
  */
 
+Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: val(OBJECT obj))
+    = just(object((k: t | k <- obj, just(t) := infer(c, val(obj[k])))))
+    when !any(k <- obj, nothing() := infer(c, val(obj[k]))) ;
 Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("object", args))
     = just(object((() | it + entries | arg <- args, just(object(entries)) := infer(c, arg))))
     when !any(arg <- args, just(object(_)) !:= infer(c, arg)) ;
@@ -229,6 +232,9 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("entry", [val(STRI
 Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("spread", [DATA_EXPRESSION e1]))
     = just(t) when just(t: object(_)) := infer(c, e1) ;
 
+@autoName test bool _1970e82137ac9bb37df9b5df917882ce() = infer(c1, val(())) == just(object(())) ;
+@autoName test bool _14624ba5db18cc39a3ddc442356ce0df() = infer(c1, val(("x": NULL))) == just(object(("x": null()))) ;
+@autoName test bool _e92b1e2ebdd8abf6c178bf1ece13e105() = infer(c1, val(("x": true, "y": 5, "z": "foo"))) == just(object(("x": boolean(), "y": number(), "z": string()))) ;
 @autoName test bool _6919d71f830fa0240623c36d88e2fa90() = infer(c1, app("object", [])) == just(object(())) ;
 @autoName test bool _5cddcbfd53d72e838c124c2d1d007442() = infer(c1, app("object", [app("entry", [val("x"), val(NULL)])])) == just(object(("x": null()))) ;
 @autoName test bool _fcfb0e4d242a91ea870d80c339cb0281() = infer(c1, app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])) == just(object(("x": boolean(), "y": number(), "z": string()))) ;
@@ -446,6 +452,8 @@ list[Message] check(DATA_TYPE _: array(t1), DATA_CONTEXT c, DATA_EXPRESSION _: a
  * Checking: Objects
  */
 
+list[Message] check(DATA_TYPE t: object(_), DATA_CONTEXT c, DATA_EXPRESSION e: val(OBJECT obj))
+    = check(t, c, app("object", [app("entry", [val(k), val(obj[k])]) | k <- obj])) ;
 list[Message] check(DATA_TYPE t: object(_), DATA_CONTEXT c, DATA_EXPRESSION e: app(f, args))
     = [error("Expected data type: any object. Actual: <actual(maybe)>", e.src) | maybe := infer(c, e), just(object(_)) !:= maybe]
     + [error("Expected property: `<k>`", e.src) | just(object(entries)) := infer(c, e), k <- t.entries, k notin entries]

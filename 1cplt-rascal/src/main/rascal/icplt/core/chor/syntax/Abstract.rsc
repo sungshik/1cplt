@@ -137,3 +137,5 @@ DATA_EXPRESSION defaultOf(DATA_TYPE _: string())
     = val("") ;
 DATA_EXPRESSION defaultOf(DATA_TYPE _: array(t1))
     = val([]) ;
+DATA_EXPRESSION defaultOf(DATA_TYPE _: object(entries))
+    = val((k: v | k <- entries, val(v) := defaultOf(entries[k]))) ;
