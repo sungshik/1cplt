@@ -1,26 +1,22 @@
-role @buyer1(x, f: number, neigh: @buyeri)
-{
+role @buyer1(x?: number, f: number, neigh: @buyeri) {
   main:
     "foo" -> @seller.title |> {
-      123 -> @buyer1.x |> {
-        (x / f) -> neigh.y |>
-          contrib
-      } ;
+      123 -> @buyer1.x |>
+        (x / f) -> neigh.y |> contrib ;
       foreach<@buyeri> n in neighs do
-        123 -> n.x |>
-          contrib
+        123 -> n.x |> contrib
     }
 }
 
 role @buyeri(
-  x, y, f: number,
+  x?: number,
+  y?: number,
+  f: number,
   last: boolean,
-  neigh: @buyeri)
-{
+  neigh: @buyeri
+) {
   contrib:
-    if
-      x != 0 && y != 0
-    then {
+    if x != undefined && y != undefined then {
       if
         last
       then
@@ -30,16 +26,13 @@ role @buyeri(
     }
 }
 
-role @seller(
-  title: string,
-  result: boolean,
-  neighs: @buyeri[])
+role @seller(title?: string, result: boolean, neighs: @buyeri[])
 
-process @buyer1(0, 3, @buyeri[2])
-process @buyeri[2](0, 0, 5, false, @buyeri[3])
-process @buyeri[3](0, 0, 8, false, @buyeri[4])
-process @buyeri[4](0, 0, 2, true, @buyeri[4])
-process @seller("", false, [@buyeri[2], @buyeri[3], @buyeri[4]])
+process @buyer1(undefined, 3, @buyeri[2])
+process @buyeri[2](undefined, undefined, 5, false, @buyeri[3])
+process @buyeri[3](undefined, undefined, 8, false, @buyeri[4])
+process @buyeri[4](undefined, undefined, 2, true, @buyeri[4])
+process @seller(undefined, false, [@buyeri[2], @buyeri[3], @buyeri[4]])
 
 #analyze
 #compile

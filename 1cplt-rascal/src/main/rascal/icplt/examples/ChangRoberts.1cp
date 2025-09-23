@@ -1,5 +1,4 @@
-role @node(neigh: @node, x, y: number, z: boolean)
-{
+role @node(neigh: @node, x, y: number, z: boolean) {
   main:
     x -> neigh.y |> forward
 

@@ -16,6 +16,8 @@ data CHOR_CONTEXT = context(
 
 CHOR_CONTEXT c1 = context((), ()) ;
 CHOR_CONTEXT c2 = context(("@alice": ("i": number()), "@bob": ("i": number(), "b": boolean())), ("@alice": ("f": chor("@alice"), "g": chor("@bob")), "@bob": ())) ;
+CHOR_CONTEXT c3 = context(("@alice": (), "@bob": ("x": union([number(), undefined()]), "y": number(), "z": undefined())), ("@alice": ("f": chor("@alice"), "g": chor("@bob")), "@bob": ())) ;
+CHOR_CONTEXT c4 = context(("@alice": ("i": union([number(), undefined()]), "j": number()), "@bob": ("i": union([number(), undefined()]))), ("@alice": (), "@bob": ())) ;
 
 CHOR_CONTEXT toChorContext(CHOR_EXPRESSION e) {
     set[PID]  pids  = {rk | /PID rk := e};
@@ -86,25 +88,29 @@ list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: CHO
     when inContext(p, c) ;
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: asgn(xData, eData))
     = [error("Unexpected data variable", e.xDataSrc) | xData notin c.gammas[p]]
-    + [*check(c.gammas[p][xData], context(c.gammas[p]), eData) | xData in c.gammas[p]]
+    + [error("Expected data type: not `undefined`. Actual: <actual(maybe)>.", eData.src) | maybe := infer(context(c.gammas[p]), eData), just(/undefined()) := maybe]
+    + [*check(c.gammas[p][xData], context(c.gammas[p]), eData) | just(/undefined()) !:= infer(context(c.gammas[p]), eData), xData in c.gammas[p]]
     when inContext(p, c) ;
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: comm(eData1, eData2, xData, e1))
     = [error("Expected data type: any name. Actual: <actual(maybe)>.", eData2.src) | maybe := infer(context(c.gammas[p]), eData2), just(pid(_)) !:= maybe]
     + [error("Unexpected name", eData2.src) | just(pid(q)) := infer(context(c.gammas[p]), eData2), !inContext(q, c)]
     + [error("Unexpected data variable: `<xData>`", e.xDataSrc) | just(pid(q)) := infer(context(c.gammas[p]), eData2), inContext(q, c), xData notin c.gammas[q]]
-    + [*check(tAny, context(c.gammas[p]), eData1) | just(pid(q)) := infer(context(c.gammas[p]), eData2), inContext(q, c), xData in c.gammas[q], tAny := c.gammas[q][xData]]
+    + [error("Expected data type: not `undefined`. Actual: <actual(maybe)>.", eData1.src) | maybe := infer(context(c.gammas[p]), eData1), just(/undefined()) := maybe]
+    + [*check(c.gammas[q][xData], context(c.gammas[p]), eData1) | just(/undefined()) !:= infer(context(c.gammas[p]), eData1), just(pid(q)) := infer(context(c.gammas[p]), eData2), inContext(q, c), xData in c.gammas[q]]
     + [*check(pid(q), context(c.gammas[p]), eData2) | just(pid(q)) := infer(context(c.gammas[p]), eData2), inContext(q, c)]
-    + [*check(chor(q), c, e1) | just(pid(q)) := infer(context(c.gammas[p]), eData2), inContext(q, c)]
+    + [*check(chor(q), removeUndefinedFrom(c, q, {xData}), e1) | just(pid(q)) := infer(context(c.gammas[p]), eData2), inContext(q, c)]
     when inContext(p, c) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: choice(eData, e1, e2))
-    = check(boolean(), context(c.gammas[p]), eData) + check(t, c, e1) + check(t, c, e2) ;
+    = check(boolean(), context(c.gammas[p]), eData) + check(t, removeUndefinedFrom(c, p, getDefined(eData)), e1) + check(t, c, e2) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: loop(eData, e1))
     = check(boolean(), context(c.gammas[p]), eData) + check(t, c, e1) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: at(eData, e1))
     = [error("Expected data type: <p>. Actual: <actual(maybe)>.", eData.src) | maybe := infer(context(()), eData), just(pid(p)) !:= maybe]
     + [*check(t, c, e1) | just(pid(p)) := infer(context(()), eData)] ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq(e1, e2))
-    = check(t, c, e1) + check(t, c, e2) ;
+    = check(t, c, e1) + check(t, removeUndefinedFrom(c, p, {xData}), e2) when asgn(xData ,_) := e1 ;
+list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq(e1, e2))
+    = check(t, c, e1) + check(t, c, e2) when asgn(_ ,_) !:= e1 ;
 
 default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = [error("Expected choreograpy type: `<toStr(t)>`. Actual: <actual(c, e)>.", e.src)] ;
@@ -129,17 +135,30 @@ default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
 @autoName test bool _9343f174bd7c55a94764fcd6b7a13259() = check(chor("@alice"), c2, asgn("i", val(5))) == [] ;
 @autoName test bool _c7dd4ed2288ebc124800ce7c07f79baa() = check(chor("@alice"), c2, asgn("i", val(false))) != [] ;
 @autoName test bool _fe835e7af17776bb33eb95f65df75619() = check(chor("@alice"), c2, asgn("j", val(5))) != [] ;
+@autoName test bool _7f82370534f5e44a9092f1c45afe2bc9() = check(chor("@alice"), c4, asgn("i", val(5))) == [] ;
+@autoName test bool _4ce992e42b563e6fdfb3ad71dff674ce() = check(chor("@alice"), c4, asgn("i", val(UNDEFINED))) != [] ;
+@autoName test bool _48a8ad926896f7592673b8e533f615cd() = check(chor("@alice"), c4, asgn("i", var("i"))) != [] ;
 @autoName test bool _791c62822996212bd8e4e2bdbd561e9e() = check(chor("@alice"), c2, comm(val(5), val(<"@bob", 0>), "i", skip())) == [] ;
-@autoName test bool _2e6086313023f12c0dfb3a9196b8cb6d() = check(chor("@alice"), c2, comm(val(5), val(<"@bob", 0>), "i", asgn("j", val(5)))) != [] ;
 @autoName test bool _ad3719f7181316972c1ab95d956e2e0e() = check(chor("@alice"), c2, comm(val(5), val(<"@bob", 0>), "j", skip())) != [] ;
 @autoName test bool _5238ddd92720a1c7e41165231eb1e029() = check(chor("@alice"), c2, comm(val(5), val(<"@bob", 0>), "b", skip())) != [] ;
 @autoName test bool _46f3b25d7982d271723ea9aefb26d194() = check(chor("@alice"), c2, comm(val(5), val(<"@carol", 0>), "i", skip())) != [] ;
 @autoName test bool _e4a7af07618bb66bbf146c1bb378a9d6() = check(chor("@alice"), c2, comm(val(5), asc(val(<"@bob", 0>), pid("@alice")), "i", skip())) != [] ;
 @autoName test bool _34597625cdd5605c3659c5d7e5c885eb() = check(chor("@alice"), c2, comm(val(false), val(<"@bob", 0>), "i", skip())) != [] ;
+@autoName test bool _2e6086313023f12c0dfb3a9196b8cb6d() = check(chor("@alice"), c2, comm(val(5), val(<"@bob", 0>), "i", asgn("j", val(5)))) != [] ;
+@autoName test bool _ac73ee9b991596489b8b5cc1a8203574() = check(chor("@alice"), c3, comm(val(5), val(<"@bob", 0>), "x", asgn("y", var("x")))) == [] ;
+@autoName test bool _4ada56af8701b3bf74d77746f9f016d9() = check(chor("@alice"), c3, comm(val(5), val(<"@bob", 0>), "x", asgn("z", var("x")))) != [] ;
+@autoName test bool _ad48f289dc1171c50f22ac16a1570247() = check(chor("@alice"), c3, comm(val(5), val(<"@bob", 0>), "x", asgn("x", val(UNDEFINED)))) != [] ;
+@autoName test bool _a13475aa6f1b0d22a01e67deec2d8d2d() = check(chor("@alice"), c3, comm(val(UNDEFINED), val(<"@bob", 0>), "x", asgn("y", var("x")))) != [] ;
+@autoName test bool _cfa6390e1a435d1a400da54dd5a6b873() = check(chor("@alice"), c3, comm(val(UNDEFINED), val(<"@bob", 0>), "x", asgn("x", val(5)))) != [] ;
+@autoName test bool _ef1136c954830402ce38e4a25299f0a8() = check(chor("@alice"), c4, comm(val(5), val(<"@bob", 0>), "i", skip())) == [] ;
+@autoName test bool _bfbd24f933eb362a3dffcd55f7d8bdf7() = check(chor("@alice"), c4, comm(val(UNDEFINED), val(<"@bob", 0>), "i", skip())) != [] ;
+@autoName test bool _f3687eb04bf855841cb3f91ffbaea8ea() = check(chor("@alice"), c4, comm(var("i"), val(<"@bob", 0>), "i", skip())) != [] ;
 @autoName test bool _7af7c7e404cb2443f663b5dab138cdcb() = check(chor("@alice"), c2, choice(val(false), skip(), skip())) == [] ;
 @autoName test bool _ba4b8282de9656efcf3de58af2de0c5a() = check(chor("@alice"), c2, choice(val(false), skip(), asgn("j", val(5)))) != [] ;
 @autoName test bool _20f46c6e3892eb2fa95eee9cf777a32c() = check(chor("@alice"), c2, choice(val(false), asgn("j", val(5)), skip())) != [] ;
 @autoName test bool _b8e2bc8c5c9bbda35cc7e77154672a2a() = check(chor("@alice"), c2, choice(val(5), skip(), skip())) != [] ;
+@autoName test bool _dc413bfe8a3720a846ef05d0e86e3bb7() = check(chor("@alice"), c4, choice(app("!=", [var("i"), val(UNDEFINED)]), asgn("i", app("-", [var("i"), val(1)])), skip())) == [] ;
+@autoName test bool _f08e57fa6daeb87a7c57c9b07f838bc0() = check(chor("@alice"), c4, asgn("i", app("-", [var("i"), val(1)]))) != [] ;
 @autoName test bool _3999a054ea75c189d01ca28aedafcbf8() = check(chor("@alice"), c2, loop(val(false), skip())) == [] ;
 @autoName test bool _4c1aee248c7e212fe3499b18d77146dc() = check(chor("@alice"), c2, loop(val(false), at(val(<"@bob", 0>), skip()))) != [] ;
 @autoName test bool _ec0956e5919676a7d608d79a2128e8dc() = check(chor("@alice"), c2, at(val(<"@alice", 5>), skip())) == [] ;
@@ -148,9 +167,14 @@ default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
 @autoName test bool _43719ac33090385401cd615eb1748589() = check(chor("@alice"), c2, seq(asgn("i", val(5)), asgn("i", val(6)))) == [] ;
 @autoName test bool _af9220d3189eb79e132e3386eedce5ff() = check(chor("@alice"), c2, seq(asgn("i", val(5)), asgn("j", val(6)))) != [] ;
 @autoName test bool _0bc53afec1b6ad0e61a751ec78899528() = check(chor("@alice"), c2, seq(asgn("j", val(5)), asgn("i", val(6)))) != [] ;
+@autoName test bool _242a2c5928e6c81942e683251b7936a8() = check(chor("@alice"), c4, seq(asgn("i", val(5)), asgn("j", var("i")))) == [] ;
+@autoName test bool _1ba2a3c4a2062a251085cce15ff7d311() = check(chor("@alice"), c4, seq(skip(), asgn("j", var("i")))) != [] ;
 
 private bool inContext(ROLE r, CHOR_CONTEXT _: context(gammas, deltas))
     = r in gammas && r in deltas ;
 
 private str actual(CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = just(t) := infer(c, e) ? "`<toStr(t)>`" : "Failed to infer" ;
+
+private CHOR_CONTEXT removeUndefinedFrom(CHOR_CONTEXT c, ROLE r, set[DATA_VARIABLE] xDatas)
+    = c [gammas = c.gammas + (r: c.gammas[r] + (xData: tData | xData <- xDatas, xData in c.gammas[r], union([tData, undefined()]) := c.gammas[r][xData]))] ;

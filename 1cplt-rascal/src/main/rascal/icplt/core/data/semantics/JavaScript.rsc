@@ -7,6 +7,8 @@ str toJavaScript(DATA_EXPRESSION _: err())
     = "(() =\> { throw new Error(); })()" ;
 str toJavaScript(DATA_EXPRESSION _: var(x))
     = "runtime.state[\'<x>\']" ;
+str toJavaScript(DATA_EXPRESSION _: val(UNDEFINED _))
+    = "null" ;
 str toJavaScript(DATA_EXPRESSION _: val(PID _: <r, k>))
     = "runtime.hosts[\'<k == 0 ? "<r>" : "<r>[<k>]">\']" ;
 str toJavaScript(DATA_EXPRESSION _: val(NULL _))

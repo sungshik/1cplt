@@ -1,28 +1,24 @@
-role @client(input: number[], sum, n: number)
-{
+role @client(input: number[], sum: number) {
   main:
     sum := 0 ;
     computeSum
 
   computeSum:
-    if
-      input.length > 0
-    then {
-      n := input[0] ?? 0 ; 
-      input := input.slice(1) ;
-      {n1: sum, n2: n, c: self} -> @server.req |> {
+    if input.length > 0 then {
+      {n1: sum, n2: input[0] ?? 0, c: self} -> @server.req |> {
         resp := req.n1 + req.n2 ;
         resp -> req.c.sum |>
           computeSum
-      }
+      } ;
+      input := input.slice(1)
     }
 }
 
-role @server(req: {n1: number; n2: number; c: @client}, resp: number)
+role @server(req?: {n1: number; n2: number; c: @client}, resp?: number)
 
-process @client[5]([5, 6, 7, 8], 0, 0)
-process @client[6]([1, 2, 3], 0, 0)
-process @server({n1: 0, n2: 0, c: @client[5]}, 0)
+process @client[5]([5, 6, 7, 8], 0)
+process @client[6]([1, 2, 3], 0)
+process @server(undefined, undefined)
 
 #analyze
 #compile

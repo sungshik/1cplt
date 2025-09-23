@@ -66,11 +66,16 @@ lexical DataVariable
     = @category="variable" (Alpha (Alnum | [_])*) !>> [0-9 A-Z a-z _] \ DataKeyword ;
 
 syntax DataValue
-    = Pid
+    = Undefined
+    | Pid
     | Null
     | Boolean
     | Number
     | String
+    ;
+
+lexical Undefined
+    = "undefined"
     ;
 
 lexical Pid
@@ -94,7 +99,8 @@ lexical String
     = @category="string" [\"] ({Print !>> [\"] ()}* Print)? [\"] ;
 
 keyword DataKeyword
-    = "null"
+    = "undefined"
+    | "null"
     | "boolean"
     | "number"
     | "string"

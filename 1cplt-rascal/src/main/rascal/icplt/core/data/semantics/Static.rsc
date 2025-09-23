@@ -80,6 +80,15 @@ Maybe[DATA_TYPE] infer(DATA_CONTEXT c, DATA_EXPRESSION _: app("oaccess", [e1, va
 @autoName test bool _0053304168e06f33ef3a545e9da684bc() = infer(c1, app("oaccess", [app("object", [app("entry", [val("x"), val(NULL)])]), val("x")])) == just(null()) ;
 
 /*
+ * Inference: Undefined
+ */
+
+Maybe[DATA_TYPE] infer(DATA_CONTEXT _, DATA_EXPRESSION _: val(UNDEFINED _))
+    = just(undefined()) ;
+
+@autoName test bool _5166dd3b4268f5d157ab41bbc33ac047() = infer(c1, val(UNDEFINED)) == just(undefined()) ;
+
+/*
  * Inference: Pids
  */
 
@@ -296,8 +305,7 @@ list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("?:", [e
 list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app(",", args))
     = [*analyze(c, ei) | ei <- args] ;
 list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("oaccess", [e1, e2: val(k)]))
-    = [error("Expected data type: `{...; <k>: <toStr(t)>; ...}`. Actual: Failed to infer.", e1.src) | nothing() := infer(c, e1)]
-    + analyze(c, e1)
+    = [error("Expected data type: `{...; <k>: <toStr(t)>; ...}`. Actual: <actual(maybe)>.", e1.src) | maybe := infer(c, e1), just(object(_)) !:= maybe]
     + [error("Unexpected property", e2.src) | just(object(entries)) := infer(c, e1), k notin entries]
     + [error("Expected data type: `<toStr(t)>`. Actual: `<toStr(entries[k])>`.", e2.src) | just(object(entries)) := infer(c, e1), k in entries, t !:= entries[k]] ;
 
@@ -327,6 +335,15 @@ list[Message] check(DATA_TYPE t, DATA_CONTEXT c, DATA_EXPRESSION _: app("oaccess
 @autoName test bool _ad9f3ec896fdf971c500edc786801c4d() = ret := check(object(()), c1, app("oaccess", [app("oaccess", [app("object", [app("entry", [val("outer"), app("object", [app("entry", [val("inner"), app("object", [])])])])]), val("outer")]), val("inner")])) && [] == ret ;
 @autoName test bool _8fb215daedcae4a08d0dc18ecde0ae59() = ret := check(number(), c1, app("oaccess", [app("object", []), val("x")])) && [_] := ret ;
 @autoName test bool _0134d1645374faed134789a4661e1c7f() = ret := check(number(), c1, app("oaccess", [app("object", [app("entry", [val("x"), val(NULL)])]), val("x")])) && [_] := ret ;
+
+/*
+ * Checking: Undefined
+ */
+
+list[Message] check(DATA_TYPE _: undefined(), DATA_CONTEXT _, DATA_EXPRESSION _: val(UNDEFINED _))
+    = [] ;
+
+@autoName test bool _eb0b23d5e847e2e9908be5609d7efcf2() = check(undefined(), c1, val(UNDEFINED)) == [] ;
 
 /*
  * Checking: Pids

@@ -108,6 +108,10 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 @autoName test bool _d778e388fe7427517e1c2e8fce04363d() = reduce(<s1, app("aaccess", [val([5, 6, 7]), val(-1)])>) == <s1, val(NULL)> ;
 
 /*
+ * Reduction: Undefined
+ */
+
+/*
  * Reduction: Pids
  */
 
