@@ -18,6 +18,8 @@ str toJSON(DATA_TYPE _: array(t1))
     = "{ \"type\": \"array\", \"items\": <toJSON(t1)> }" ;
 str toJSON(DATA_TYPE _: object(entries))
     = "{ \"type\": \"object\", \"properties\": { <intercalate(", ", ["\"<k>\": <toJSON(entries[k])>" | k <- entries])> } }" ;
+str toJSON(DATA_TYPE _: union(types))
+    = "{ \"anyOf\": [<intercalate(", ", [toJSON(ti) | ti <- types])>] }" ;
 
 str toJSON(DATA_EXPRESSION _: val(PID _: <r, k>))
     = "\"<k == 0 ? "<r>" : "<r>[<k>]">\"" ;
