@@ -4,6 +4,8 @@ import List;
 import String;
 import icplt::core::\data::\syntax::Abstract;
 
+str toJSON(DATA_TYPE _: undefined())
+    = "{ \"type\": \"null\" }" ;
 str toJSON(DATA_TYPE _: pid(_))
     = "{ \"type\": \"string\", \"default\": true }" ;
 str toJSON(DATA_TYPE _: null())
@@ -21,6 +23,8 @@ str toJSON(DATA_TYPE _: object(entries))
 str toJSON(DATA_TYPE _: union(types))
     = "{ \"anyOf\": [<intercalate(", ", [toJSON(ti) | ti <- types])>] }" ;
 
+str toJSON(DATA_EXPRESSION _: val(UNDEFINED _))
+    = "null" ;
 str toJSON(DATA_EXPRESSION _: val(PID _: <r, k>))
     = "\"<k == 0 ? "<r>" : "<r>[<k>]">\"" ;
 str toJSON(DATA_EXPRESSION _: val(NULL _))
