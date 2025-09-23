@@ -24,8 +24,13 @@ syntax ProcessDefinition
     | "process" Pid "(" {ActualParameter ","}* ")" "|\>" ChorExpression
     ;
 
-syntax FormalParameter = {DataVariable ","}+ ":" DataType ;
-syntax ActualParameter = DataExpression!comma ;
+syntax FormalParameter
+    = {DataVariable ","}+ ":" DataType
+    | DataVariable "?" ":" DataType
+    ;
+
+syntax ActualParameter
+    = DataExpression!comma ;
 
 syntax Directive = @category="decorator" [#] (Alpha (Alnum | [_])*) !>> [0-9 A-Z a-z _] \ DataKeyword ;
 

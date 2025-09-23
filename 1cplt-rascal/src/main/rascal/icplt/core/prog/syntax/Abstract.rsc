@@ -30,7 +30,7 @@ PROG_EXPRESSION toAbstract(e: (ProgExpression) `<ProgExpression e1> <ProgExpress
 @autoName test bool _0d58009016b73b8d3b74369c80d1e905() = compare(toAbstract(parse(#ProgExpression, "role @alice() role @bob() role @carol()")), seq(seq(glob("@alice", [], [proced("main", skip())]), glob("@bob", [], [proced("main", skip())])), glob("@carol", [], [proced("main", skip())]))) ;
 
 /*
- * Expressions: Role Definitions
+ * Expressions: Role definitions
  */
 
 PROG_EXPRESSION toAbstract(e: (RoleDefinition) `role <Role r>(<{FormalParameter ","}* formals>)`)
@@ -47,7 +47,7 @@ private list[PROCEDURE] addMain(list[PROCEDURE] proceds)
     = proceds + ((/proced("main", _) := proceds) ? [] : [proced("main", skip())]) ;
 
 /*
- * Expressions: Process Definitions
+ * Expressions: Process definitions
  */
 
 PROG_EXPRESSION toAbstract(e: (ProcessDefinition) `process <Pid rk>(<{ActualParameter ","}* actuals>)`)
@@ -85,7 +85,9 @@ data PARAMETER(loc src = |unknown:///|)
     ;
 
 list[PARAMETER] toAbstract(e: (FormalParameter) `<{DataVariable ","}+ xDatas>: <DataType tData>`)
-    = [formal(toAbstract(xData), toAbstract(tData)) [src = e.src] [xDataSrc = xData.src] | xData <- xDatas];
+    = [formal(toAbstract(xData), toAbstract(tData)) [src = e.src] [xDataSrc = xData.src] | xData <- xDatas] ;
+list[PARAMETER] toAbstract(e: (FormalParameter) `<DataVariable xData>?: <DataType tData>`)
+    = [formal(toAbstract(xData), union([toAbstract(tData), undefined()]) [src = tData.src]) [src = e.src] [xDataSrc = xData.src]] ;
 
 @autoName test bool _b1de474881069e6d3bce185c5a6da340() = compare(toAbstract(parse(#FormalParameter, "x: number")), [formal("x", number())]) ;
 @autoName test bool _d5dab34732b3ad044f569ee05d3431fd() = compare(toAbstract(parse(#FormalParameter, "x, y: number")), [formal("x", number()), formal("y", number())]) ;
