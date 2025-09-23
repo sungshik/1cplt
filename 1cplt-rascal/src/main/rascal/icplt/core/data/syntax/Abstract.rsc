@@ -4,7 +4,6 @@ extend icplt::core::\util::\syntax::Abstract;
 import Boolean;
 import ParseTree;
 import String;
-
 import icplt::core::\data::\syntax::Concrete;
 
 /*
@@ -12,7 +11,8 @@ import icplt::core::\data::\syntax::Concrete;
  */
 
 data DATA_TYPE(loc src = |unknown:///|)
-    = pid(ROLE r)
+    = undefined()
+    | pid(ROLE r)
     | null()
     | boolean()
     | number()
@@ -61,6 +61,8 @@ map[str, DATA_TYPE] toAbstract((DataTypeEntry) `<DataVariable x>: <DataType t>`)
 @autoName test bool _f44673095724529aec4d2fed33950e04() = compare(toAbstract(parse(#DataType, "(number | boolean | string)[]")), array(union([number(), boolean(), string()]))) ;
 @autoName test bool _8e403cf2c51b1ba423cd2280aa4a9d61() = compare(toAbstract(parse(#DataType, "number[] | boolean[] | string[]")), union([array(number()), array(boolean()), array(string())])) ;
 
+str toStr(DATA_TYPE _: undefined())
+    = "undefined" ;
 str toStr(DATA_TYPE _: pid(r))
     = "<r>" ;
 str toStr(DATA_TYPE _: null())
@@ -81,6 +83,7 @@ str toStr(DATA_TYPE _: union(types))
 private str parens(str s)
     = contains(s, " ") ? "(<s>)" : s ;
 
+@autoName test bool _ac0b87b94364689030a8c10343b69607() = toStr(undefined()) == "undefined" ;
 @autoName test bool _1bed5ae90f396bd132e7764db2a3db55() = toStr(pid("@alice")) == "@alice" ;
 @autoName test bool _f787b28bb88a382139a33049e967d220() = toStr(null()) == "null" ;
 @autoName test bool _61a689820a66fc089ed489d05f3ea59c() = toStr(boolean()) == "boolean" ;
@@ -217,6 +220,8 @@ str toStr(DATA_EXPRESSION _: var(x))
     = "<x>" ;
 str toStr(DATA_EXPRESSION _: val(v)) {
     switch (v) {
+        case UNDEFINED _: _:
+            return "undefined";
         case PID _: <r, k>:
             return k == 0 ? "<r>" : "<r>[<k>]";
         case NULL _: _:
@@ -239,12 +244,29 @@ str toStr(DATA_EXPRESSION _: app(f, args))
     : "<f>(<intercalate(", ", [toStr(arg) | arg <- args])>)" ;
 
 @autoName test bool _316445d34c4db4cc504f8205ee83b07a() = toStr(var("x")) == "x" ;
+@autoName test bool _a4fad3d3030c03d4edeb0fcbb4d2db0b() = toStr(val(UNDEFINED)) == "undefined" ;
 @autoName test bool _cd6ce612e38a2423bf35edfd6bb18e44() = toStr(val(<"@alice", 0>)) == "@alice" ;
 @autoName test bool _0954b4ecad838ab7088856dea1e4e2a8() = toStr(val(<"@alice", 5>)) == "@alice[5]" ;
 @autoName test bool _022552671b43152ed15663fb6f487468() = toStr(val(NULL)) == "null" ;
 @autoName test bool _2b33d3d631e1e3eb41230baaca897189() = toStr(val(true)) == "true" ;
 @autoName test bool _eb8ec484d6e5f60a78dc2c0e4b9e7715() = toStr(asc(val(5), number())) == "5 as number" ;
 @autoName test bool _ccdd6ba03cdd7e3e8e699335ee8d4870() = toStr(app("+", [val(5), val(6)])) == "+(5, 6)" ;
+
+set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("!=", [var(x), val(UNDEFINED)]))
+    = {x} ;
+set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("!=", [val(UNDEFINED), var(x)]))
+    = {x} ;
+set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("&&", [e1, e2]))
+    = getDefined(e1) + getDefined(e2) ;
+
+default set[DATA_VARIABLE] getDefined(DATA_EXPRESSION e)
+    = {} ;
+
+@autoName test bool _b24a5de01b09e23e1fdd20183fb1609b() = getDefined(app("!=", [var("x"), val(UNDEFINED)])) == {"x"} ;
+@autoName test bool _d64e6bbae1fe6e06f8aa990d885535df() = getDefined(app("!=", [val(UNDEFINED), var("x")])) == {"x"} ;
+@autoName test bool _ee57bd38a5209c324a24cc809a6c4d28() = getDefined(app("&&", [app("!=", [var("x"), val(UNDEFINED)]), app("!=", [var("y"), val(UNDEFINED)])])) == {"x", "y"} ;
+@autoName test bool _1a20e0f21d883bc95c8a53ad83752066() = getDefined(app("==", [var("x"), val(UNDEFINED)])) == {} ;
+@autoName test bool _710ea75deb8e1f3cde4ae69d5690537a() = getDefined(app("!=", [var("x"), val(5)])) == {} ;
 
 /*
  * Variables
@@ -267,6 +289,18 @@ DATA_VALUE toAbstract(v: (DataValue) _)
     = toAbstract(v.args[0]) ;
 
 /*
+ * Values: Undefined
+ */
+
+alias UNDEFINED = void() ;
+public void() UNDEFINED = void() {;};
+
+UNDEFINED toAbstract((Undefined) _)
+    = UNDEFINED ;
+
+@autoName test bool _9c4eda0cbb7bd509f0811e81736204f2() = toAbstract(parse(#Undefined, "undefined")) == UNDEFINED ;
+
+/*
  * Values: Pids
  */
 
@@ -284,8 +318,8 @@ PID toAbstract((Pid) `<Role r>[<Number k>]`)
  * Values: Null
  */
 
-alias NULL = void() ;
-void  NULL() {;}
+alias NULL = void(value) ;
+public void(value) NULL = void(value _) {;} ;
 
 NULL toAbstract((Null) _)
     = NULL ;
