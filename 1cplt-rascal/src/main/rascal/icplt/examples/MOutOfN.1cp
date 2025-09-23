@@ -1,5 +1,4 @@
-role @prod(ok: boolean)
-{
+role @prod(ok: boolean) {
   main:
     self -> @cons.p |>
       if
@@ -11,14 +10,12 @@ role @prod(ok: boolean)
         false -> p.ok
 }
 
-role @cons(p: @prod, ps: @prod[], m: number)
+role @cons(p?: @prod, ps: @prod[], m: number)
 
 process @prod[1](false)
 process @prod[2](false)
 process @prod[3](false)
-process @cons(@prod[1], [], 2)
-//            ^^^^^^^^
-//            Dummy initial value
+process @cons(undefined, [], 2)
 
 #analyze
 #compile

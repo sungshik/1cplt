@@ -1,8 +1,10 @@
 role @node(
   init: boolean,
-  neighs, senders: @node[],
-  parent, sender:  @node)
-{
+  neighs: @node[],
+  senders: @node[],
+  parent?: @node,
+  sender?: @node
+) {
   main:
     parent := self ;
     if init then
@@ -11,33 +13,34 @@ role @node(
   roll:
     foreach<@node> neigh in neighs do
       if neigh != parent then
-        self -> neigh.sender |> 
-          recv
+        self -> neigh.sender |> recv
 
   recv:
-    senders := [sender].concat(senders) ;
-    if !init then {
-      if
-        // Step 1: First receive?
-        senders.length == 1
-      then {
-        // Step 2: Send to non-parents
-        parent := sender ;
-        roll } ;
-      if
-        // Step 3: Last receive?
-        senders.length == neighs.length
-      then
-        // Step 4: Send to parent
-        self -> parent.sender |> 
-          recv
+    if sender != undefined then {
+      senders := [sender].concat(senders) ;
+      if !init then {
+        if
+          // Step 1: First receive?
+          senders.length == 1
+        then {
+          // Step 2: Send to non-parents
+          parent := sender ;
+          roll
+        } ;
+        if
+          // Step 3: Last receive?
+          senders.length == neighs.length && parent != undefined
+        then
+          // Step 4: Send to parent
+          self -> parent.sender |> recv
+      }
     }
 }
 
-process @node[1](true,  [          @node[2], @node[3], @node[4]], [], @node[1], @node[1])
-process @node[2](false, [@node[1],           @node[3], @node[4]], [], @node[2], @node[2])
-process @node[3](false, [@node[1], @node[2],           @node[4]], [], @node[3], @node[3])
-process @node[4](false, [@node[1], @node[2], @node[3]          ], [], @node[4], @node[4])
+process @node[1](true,  [          @node[2], @node[3], @node[4]], [], undefined, undefined)
+process @node[2](false, [@node[1],           @node[3], @node[4]], [], undefined, undefined)
+process @node[3](false, [@node[1], @node[2],           @node[4]], [], undefined, undefined)
+process @node[4](false, [@node[1], @node[2], @node[3]          ], [], undefined, undefined)
 
 #analyze
 #compile
