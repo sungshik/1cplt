@@ -2,8 +2,8 @@ module icplt::core::\prog::\semantics::JSON
 
 import List;
 import String;
-import icplt::core::\data::\semantics::Dynamic;
 import icplt::core::\data::\semantics::JSON;
+import icplt::core::\prog::\semantics::Dynamic;
 import icplt::core::\prog::\syntax::Abstract;
 
 str toJSON(PROG_EXPRESSION e) {
@@ -17,10 +17,10 @@ str toJSON(PROG_EXPRESSION e) {
         '    \"<r>\": {
         '      \"type\": \"object\",
         '      \"properties\": {
-        '        <intercalate(", ", ["\"<xData>\": <toJSON(tData)>" | formal(xData, tData) <- formals])>
+        '        <intercalate(", ", ["\"<xData>\": <toJSON(tData)>" | formal(xData, tData, _) <- formals])>
         '      },
         '      \"required\": [
-        '        <intercalate(", ", ["\"<xData>\"" | formal(xData, _) <- formals])>
+        '        <intercalate(", ", ["\"<xData>\"" | formal(xData, _, _) <- formals])>
         '      ]
         '    },
         '    <}>
@@ -33,9 +33,9 @@ str toJSON(PROG_EXPRESSION e) {
         '    <}>
         '  },
         '  \"init\": {
-        '    <for (proc(<r, k>, actuals, _) <- procs, /glob(r, formals, _) := globs) {>
+        '    <for (proc(<r, k>, actuals, _) <- procs, /glob(r, formals, _) := globs, phi := toPhi(formals, actuals)) {>
         '    \"<k == 0 ? "<r>" : "<r>[<k>]">\": {
-        '      <intercalate(", ", ["\"<xData>\": <toJSON(normalize(<state(()), eData>)<1>)>" | <formal(xData, _), actual(eData)> <- zip2(formals, actuals)])>
+        '      <intercalate(", ", ["\"<xData>\": <toJSON(phi[xData])>" | xData <- phi])>
         '    },
         '    <}>
         '  }
