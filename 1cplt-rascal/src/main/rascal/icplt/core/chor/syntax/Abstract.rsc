@@ -59,6 +59,9 @@ CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<DataExpression eData>.<ChorExpr
 CHOR_EXPRESSION toAbstract(e: (ChorExpression) `<ChorExpression e1> ; <ChorExpression e2>`)
     = seq(toAbstract(e1), toAbstract(e2)) [src = e.src] ;
 
+default CHOR_EXPRESSION toAbstract(e: (ChorExpression) _)
+    = skip() [src = e.src] ;
+
 @autoName test bool _583f3d22d06ece7c73572b6772e66d28() = compare(toAbstract(parse(#ChorExpression, "\\echo 5")), esc("\\echo", [val(5)])) ;
 @autoName test bool _85e62f21d42a95037af721f8390a397c() = compare(toAbstract(parse(#ChorExpression, "main")), CHOR_EXPRESSION::var("main")) ;
 @autoName test bool _1328850d06a0378af47fff5936681b1a() = compare(toAbstract(parse(#ChorExpression, "i := 5")), asgn("i", val(5))) ;

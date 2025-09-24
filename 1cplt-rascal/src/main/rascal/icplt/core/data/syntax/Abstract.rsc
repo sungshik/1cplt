@@ -164,6 +164,9 @@ DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1> ? <DataExpre
 DATA_EXPRESSION toAbstract(e: (DataExpression) `<DataExpression e1>, <{DataExpression ","}+ rest>`)
     = app(",", [toAbstract(e1)] + [toAbstract(ei) | ei <- rest]) [src = e.src] ;
 
+default DATA_EXPRESSION toAbstract(e: (DataExpression) _)
+    = val(UNDEFINED) [src = e.src] ;
+
 DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `<DataVariable x>: <DataExpression e1>`)
     = app("entry", [val(toAbstract(x)) [src = x.src], toAbstract(e1)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `...<DataExpression e1>`)
