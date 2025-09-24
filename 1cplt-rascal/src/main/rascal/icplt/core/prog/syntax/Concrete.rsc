@@ -24,12 +24,12 @@ syntax ProcessDefinition
     ;
 
 syntax FormalParameter
-    = {DataVariable ","}+ ":" DataType
-    | DataVariable "?" ":" DataType
+    = DataVariable ":" DataType ("=" DataExpression)?
+    | DataVariable "?" ":" DataType ("=" DataExpression)?
     ;
 
 syntax ActualParameter
-    = DataExpression!comma ;
+    = DataVariable "=" DataExpression!comma ;
 
 syntax Directive = @category="decorator" [#] (Alpha (Alnum | [_])*) !>> [0-9 A-Z a-z _] \ DataKeyword ;
 
