@@ -120,7 +120,7 @@ void executionService(directive("#analyze", [], start[Prog] input)) {
                 for (/proc(rk: <r, _>, _, _) := e, /glob(r, formals, _) := e) {
                     ret += "  - <toStr(val(rk))>\n";
                     ret += "\n";
-                    for (/formal(xData, _) := formals) {
+                    for (/formal(xData, _, _) := formals) {
                         ret += "      - <xData> = <toStr(alt[rk]<0>.phi[xData])>\n";
                     }
                     ret += "\n";
