@@ -21,7 +21,6 @@ syntax Procedure = ChorVariable ":" ChorExpression ;
 
 syntax ProcessDefinition
     = "process" Pid "(" {ActualParameter ","}* ")"
-    | "process" Pid "(" {ActualParameter ","}* ")" "|\>" ChorExpression
     ;
 
 syntax FormalParameter
