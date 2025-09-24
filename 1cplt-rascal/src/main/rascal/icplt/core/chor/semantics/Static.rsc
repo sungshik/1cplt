@@ -105,7 +105,7 @@ list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: cho
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: loop(eData, e1))
     = check(boolean(), context(c.gammas[p]), eData) + check(t, c, e1) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: at(eData, e1))
-    = [error("Expected data type: <p>. Actual: <actual(maybe)>.", eData.src) | maybe := infer(context(()), eData), just(pid(p)) !:= maybe]
+    = [error("Expected data type: `<p>`. Actual: <actual(maybe)>.", eData.src) | maybe := infer(context(()), eData), just(pid(p)) !:= maybe]
     + [*check(t, c, e1) | just(pid(p)) := infer(context(()), eData)] ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq(e1, e2))
     = check(t, c, e1) + check(t, removeUndefinedFrom(c, p, {xData}), e2) when asgn(xData ,_) := e1 ;

@@ -4,6 +4,7 @@ extend icplt::core::\data::\syntax::Abstract;
 extend icplt::core::\util::\syntax::Abstract;
 
 import icplt::core::\prog::\syntax::Concrete;
+import util::Maybe;
 
 default PROG_EXPRESSION toAbstract(e: (ProgExpression) _)
     = empty() [src = e.src] ;
@@ -42,9 +43,9 @@ PROG_EXPRESSION toAbstract(e: (RoleDefinition) `role <Role r>(<{FormalParameter 
     = glob(toAbstract(r), [*toAbstract(formal) | formal <- formals], addMain([toAbstract(proced) | proced <- proceds])) [src = e.src] [rSrc = r.src] ;
 
 @autoName test bool _a0d8241b9ec7d41f1cb9372786241862() = compare(toAbstract(parse(#RoleDefinition, "role @alice()")), glob("@alice", [], [proced("main", skip())])) ;
-@autoName test bool _32baf377e4e5acf9cea004c1bca94205() = compare(toAbstract(parse(#RoleDefinition, "role @alice(x: number, y: boolean)")), glob("@alice", [formal("x", number()), formal("y", boolean())], [proced("main", skip())])) ;
+@autoName test bool _b99600d1081c4f7a1b22b67e13bc74b6() = compare(toAbstract(parse(#RoleDefinition, "role @alice(x: number, y: boolean)")), glob("@alice", [formal("x", number(), nothing()), formal("y", boolean(), nothing())], [proced("main", skip())])) ;
 @autoName test bool _66dc133fceb5edbca164a2fda680c25c() = compare(toAbstract(parse(#RoleDefinition, "role @alice() { main: assign assign: x := 5 }")), glob("@alice", [], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
-@autoName test bool _1eda478459ef733f6f70f667e06632b6() = compare(toAbstract(parse(#RoleDefinition, "role @alice(x: number, y: boolean) { main: assign assign: x := 5 }")), glob("@alice", [formal("x", number()), formal("y", boolean())], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
+@autoName test bool _19db31d78d64c11d0809086d1f97dd29() = compare(toAbstract(parse(#RoleDefinition, "role @alice(x: number, y: boolean) { main: assign assign: x := 5 }")), glob("@alice", [formal("x", number(), nothing()), formal("y", boolean(), nothing())], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
 
 private list[PROCEDURE] addMain(list[PROCEDURE] proceds)
     = proceds + ((/proced("main", _) := proceds) ? [] : [proced("main", skip())]) ;
@@ -55,15 +56,10 @@ private list[PROCEDURE] addMain(list[PROCEDURE] proceds)
 
 PROG_EXPRESSION toAbstract(e: (ProcessDefinition) `process <Pid rk>(<{ActualParameter ","}* actuals>)`)
     = proc(toAbstract(rk), [toAbstract(actual) | actual <- actuals], CHOR_EXPRESSION::var("main")) [src = e.src] [rkSrc = rk.src] ;
-PROG_EXPRESSION toAbstract(e: (ProcessDefinition) `process <Pid rk>(<{ActualParameter ","}* actuals>) |\> <ChorExpression eChor>`)
-    = proc(toAbstract(rk), [toAbstract(actual) | actual <- actuals], toAbstract(eChor)) [src = e.src] [rkSrc = rk.src] ;
 
 @autoName test bool _035a4e7a981e5daf4a3cf169a1989d01() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5]()")), proc(<"@alice", 5>, [], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _8172477822e87c5899d616d105a3e7fb() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5](5, 6)")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _7e27e159bef43e86382c5583c193427d() = compare(toAbstract(parse(#ProcessDefinition, "process @bob(5, 6)")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], CHOR_EXPRESSION::var("main"))) ;
-@autoName test bool _956ecb3e0a419f0d82f617aebe0ab601() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5]() |\> n := 5")), proc(<"@alice", 5>, [], asgn("n", val(5)))) ;
-@autoName test bool _ef65d551dbd7de9f4d96e174ba7dd8ef() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5](5, 6) |\> n := 5")), proc(<"@alice", 5>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
-@autoName test bool _8171412c7e8893d30ab80416b92bd652() = compare(toAbstract(parse(#ProcessDefinition, "process @bob(5, 6) |\> n := 5")), proc(<"@bob", 0>, [actual(val(5)), actual(val(6))], asgn("n", val(5)))) ;
+@autoName test bool _56ba384707ba19180a6288a21ab96ccf() = compare(toAbstract(parse(#ProcessDefinition, "process @alice[5](x = 5, y = 6)")), proc(<"@alice", 5>, [actual("x", just(val(5))), actual("y", just(val(6)))], CHOR_EXPRESSION::var("main"))) ;
+@autoName test bool _7af0ca1ba05dea3b8bee062811d564ff() = compare(toAbstract(parse(#ProcessDefinition, "process @bob(x = 5, y = 6)")), proc(<"@bob", 0>, [actual("x", just(val(5))), actual("y", just(val(6)))], CHOR_EXPRESSION::var("main"))) ;
 
 /*
  * Procedures
@@ -82,20 +78,26 @@ PROCEDURE toAbstract(e: (Procedure) `<ChorVariable xChor>: <ChorExpression eChor
  * Parameters
  */
 
-data PARAMETER(loc src = |unknown:///|)
-    = formal(DATA_VARIABLE xData, DATA_TYPE tData, loc xDataSrc = |unknown:///|)
-    | actual(DATA_EXPRESSION eData)
+data PARAMETER(loc src = |unknown:///|, loc xDataSrc = |unknown:///|)
+    = formal(DATA_VARIABLE xData, DATA_TYPE tData, Maybe[DATA_EXPRESSION] eData)
+    | actual(DATA_VARIABLE xData, Maybe[DATA_EXPRESSION] eData)
     ;
 
-list[PARAMETER] toAbstract(e: (FormalParameter) `<{DataVariable ","}+ xDatas>: <DataType tData>`)
-    = [formal(toAbstract(xData), toAbstract(tData)) [src = e.src] [xDataSrc = xData.src] | xData <- xDatas] ;
+list[PARAMETER] toAbstract(e: (FormalParameter) `<DataVariable xData>: <DataType tData>`)
+    = [formal(toAbstract(xData), toAbstract(tData), nothing()) [src = e.src] [xDataSrc = xData.src]] ;
+list[PARAMETER] toAbstract(e: (FormalParameter) `<DataVariable xData>: <DataType tData> = <DataExpression eData>`)
+    = [formal(toAbstract(xData), toAbstract(tData), just(toAbstract(eData))) [src = e.src] [xDataSrc = xData.src]] ;
 list[PARAMETER] toAbstract(e: (FormalParameter) `<DataVariable xData>?: <DataType tData>`)
-    = [formal(toAbstract(xData), union([toAbstract(tData), undefined()]) [src = tData.src]) [src = e.src] [xDataSrc = xData.src]] ;
+    = [formal(toAbstract(xData), union([toAbstract(tData), undefined()]) [src = tData.src], just(val(UNDEFINED))) [src = e.src] [xDataSrc = xData.src]] ;
+list[PARAMETER] toAbstract(e: (FormalParameter) `<DataVariable xData>?: <DataType tData> = <DataExpression eData>`)
+    = [formal(toAbstract(xData), union([toAbstract(tData), undefined()]) [src = tData.src], just(toAbstract(eData))) [src = e.src] [xDataSrc = xData.src]] ;
 
-@autoName test bool _b1de474881069e6d3bce185c5a6da340() = compare(toAbstract(parse(#FormalParameter, "x: number")), [formal("x", number())]) ;
-@autoName test bool _d5dab34732b3ad044f569ee05d3431fd() = compare(toAbstract(parse(#FormalParameter, "x, y: number")), [formal("x", number()), formal("y", number())]) ;
+@autoName test bool _fb12e555db5485983dfd55656bd82c4e() = compare(toAbstract(parse(#FormalParameter, "x: number")), [formal("x", number(), nothing())]) ;
+@autoName test bool _7c60a9916e6ce67f04e815204b09bed0() = compare(toAbstract(parse(#FormalParameter, "x: number = 5")), [formal("x", number(), just(val(5)))]) ;
+@autoName test bool _f5370bf81653a13fd7dd696c50303179() = compare(toAbstract(parse(#FormalParameter, "x?: number")), [formal("x", union([number(), undefined()]), just(val(UNDEFINED)))]) ;
+@autoName test bool _6bddbe692aed8c5c6b4f6fc2f6f587f2() = compare(toAbstract(parse(#FormalParameter, "x?: number = 5")), [formal("x", union([number(), undefined()]), just(val(5)))]) ;
 
-PARAMETER toAbstract(e: (ActualParameter) `<DataExpression eData>`)
-    = actual(toAbstract(eData)) [src = e.src];
+PARAMETER toAbstract(e: (ActualParameter) `<DataVariable xData> = <DataExpression eData>`)
+    = actual(toAbstract(xData), just(toAbstract(eData))) [src = e.src] [xDataSrc = xData.src] ;
 
-@autoName test bool _7b66dd025de28bfbf574b8877929321f() = compare(toAbstract(parse(#ActualParameter, "5")), actual(DATA_EXPRESSION::val(5))) ;
+@autoName test bool _c91c81da5e9b8b0931c8944b1bea2076() = compare(toAbstract(parse(#ActualParameter, "x = 5")), actual("x", just(DATA_EXPRESSION::val(5)))) ;

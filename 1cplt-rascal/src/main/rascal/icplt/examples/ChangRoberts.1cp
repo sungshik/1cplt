@@ -1,19 +1,22 @@
-role @node(neigh: @node, x, y: number, z: boolean) {
+role @node(x: number = 0, leader: boolean = false, neigh: @node) {
   main:
-    x -> neigh.y |> forward
+    self.rank -> neigh.x |> forward
 
   forward:
     if
-      x < y
+      self.rank < x
     then
-      y -> neigh.y |> forward
-    else
-      z := x == y // Leader?
+      x -> neigh.x |> forward
+    else {
+      leader := self.rank == x ;
+      if leader then
+        \echo "Leader!"
+    }
 }
 
-process @node[1](@node[2], 5, 0, false)
-process @node[2](@node[3], 6, 0, false)
-process @node[3](@node[1], 7, 0, false)
+process @node[1](neigh = @node[2])
+process @node[2](neigh = @node[3])
+process @node[3](neigh = @node[1])
 
 #analyze
 #compile

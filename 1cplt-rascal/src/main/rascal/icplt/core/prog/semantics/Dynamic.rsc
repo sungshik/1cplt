@@ -18,7 +18,7 @@ data PROG_STATE = state(set[map[PID, tuple[CHOR_STATE, CHOR_EXPRESSION]]] alts) 
 
 PROG_STATE toProgState(PROG_EXPRESSION e) {
     map[PID, map[DATA_VARIABLE, DATA_EXPRESSION]] phis
-        = (rk: (xData: normalize(<state(()), eData>)<1> | <formal(xData, _), actual(eData)> <- zip2(formals, actuals)) + ("self": val(rk)) | /proc(PID rk: <r, _>, actuals, _) := e, /glob(r, formals, _) := e) ;
+        = (rk: toPhi(formals, actuals) + ("self": val(rk)) | /proc(PID rk: <r, _>, actuals, _) := e, /glob(r, formals, _) := e) ;
     map[PID, map[CHOR_VARIABLE, CHOR_EXPRESSION]] psis
         = (rk: (xChor: eChor | proced(xChor, eChor) <- proceds) | /proc(PID rk: <r, _>, _, _) := e, /glob(r, _, proceds) := e) ;
 
@@ -27,6 +27,10 @@ PROG_STATE toProgState(PROG_EXPRESSION e) {
 
     return state({alt});
 }
+
+map[DATA_VARIABLE, DATA_EXPRESSION] toPhi(list[PARAMETER] formals, list[PARAMETER] actuals)
+    = (xData: normalize(<state(()), eData>)<1> | /formal(xData, _, just(eData)) := formals)
+    + (xData: normalize(<state(()), eData>)<1> | /formal(xData, _, _) := formals, /actual(xData, just(eData)) := actuals) ;
 
 /*
  * Normalization

@@ -1,7 +1,7 @@
 role @node(
   init: boolean,
   neighs: @node[],
-  senders: @node[],
+  senders: @node[] = [],
   parent?: @node,
   sender?: @node
 ) {
@@ -25,6 +25,7 @@ role @node(
         then {
           // Step 2: Send to non-parents
           parent := sender ;
+          \echo parent ;
           roll
         } ;
         if
@@ -37,10 +38,10 @@ role @node(
     }
 }
 
-process @node[1](true,  [          @node[2], @node[3], @node[4]], [], undefined, undefined)
-process @node[2](false, [@node[1],           @node[3], @node[4]], [], undefined, undefined)
-process @node[3](false, [@node[1], @node[2],           @node[4]], [], undefined, undefined)
-process @node[4](false, [@node[1], @node[2], @node[3]          ], [], undefined, undefined)
+process @node[1](init = true,  neighs = [          @node[2], @node[3], @node[4]])
+process @node[2](init = false, neighs = [@node[1],           @node[3], @node[4]])
+process @node[3](init = false, neighs = [@node[1], @node[2],           @node[4]])
+process @node[4](init = false, neighs = [@node[1], @node[2], @node[3]          ])
 
 #analyze
 #compile
