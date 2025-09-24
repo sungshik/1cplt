@@ -5,6 +5,9 @@ extend icplt::core::\util::\syntax::Abstract;
 
 import icplt::core::\prog::\syntax::Concrete;
 
+default PROG_EXPRESSION toAbstract(e: (ProgExpression) _)
+    = empty() [src = e.src] ;
+
 /*
  * Expressions
  */

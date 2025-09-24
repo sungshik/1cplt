@@ -48,7 +48,7 @@ set[LanguageService] languageContributor() = {
 };
 
 Tree parsingService(str input, loc l) {
-    return parse(#start[Prog], input, l);
+    return parse(#start[Prog], input, l, allowRecovery = true);
 }
 
 Summary analysisService(loc l, start[Prog] input) {
