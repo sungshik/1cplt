@@ -1,4 +1,4 @@
-role @alice(i, n: number) {
+role @alice(i: number, n: number) {
   main:
     \save ;
     i := 0 ;
@@ -19,8 +19,8 @@ role @alice(i, n: number) {
 
 role @bob(s?: string)
 
-process @alice(0, 5)
-process @bob(undefined)
+process @alice(i = 0, n = 5)
+process @bob()
 
 #analyze
 #compile
