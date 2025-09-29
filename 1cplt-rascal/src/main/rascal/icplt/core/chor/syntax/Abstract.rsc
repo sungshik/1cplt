@@ -112,7 +112,7 @@ CHOR_EXPRESSION toAbstract(e: (ChorExpression) `foreach\<<DataType tData>\> <Dat
 map[DATA_VARIABLE, DATA_TYPE] toGammaForeach(CHOR_EXPRESSION e) {
     map[DATA_VARIABLE, DATA_TYPE] gamma = ();
 
-    for (/asgn(/^\(foreach\<<s1:[@0-9A-Za-z :;{}]+>\> <s2:[0-9A-Za-z]+>, <offset:[0-9]*>\).coll$/, _) := e) {
+    for (/asgn(/^\(foreach\<<s1:[@0-9A-Za-z :;{}|]+>\> <s2:[0-9A-Za-z]+>, <offset:[0-9]*>\).coll$/, _) := e) {
         DATA_TYPE tData = toAbstract(parse(#DataType, s1));
         DATA_VARIABLE xData = s2;
 
@@ -140,5 +140,7 @@ DATA_EXPRESSION defaultOf(DATA_TYPE _: string())
     = val("") ;
 DATA_EXPRESSION defaultOf(DATA_TYPE _: array(t1))
     = val([]) ;
+DATA_EXPRESSION defaultOf(DATA_TYPE _: union([t1, *_]))
+    = defaultOf(t1) ;
 DATA_EXPRESSION defaultOf(DATA_TYPE _: object(entries))
     = val((k: v | k <- entries, val(v) := defaultOf(entries[k]))) ;
