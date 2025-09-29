@@ -9,6 +9,7 @@ import icplt::core::\chor::IDE;
 import icplt::core::\chor::\semantics::Dynamic;
 import icplt::core::\chor::\semantics::Static;
 import icplt::core::\chor::\syntax::Abstract;
+import icplt::core::\data::\syntax::Abstract;
 import icplt::core::\prog::\semantics::Dynamic;
 import icplt::core::\prog::\semantics::JSON;
 import icplt::core::\prog::\semantics::JavaScript;
@@ -42,6 +43,7 @@ Language language() = language(
 set[LanguageService] languageContributor() = {
     parsing(parsingService, usesSpecialCaseHighlighting = false),
     analysis(analysisService, providesDocumentation = true, providesDefinitions = false, providesReferences = false, providesImplementations = false),
+    documentSymbol(documentSymbolService),
     codeLens(codeLensService),
     execution(executionService),
     inlayHint(inlayHintService)
@@ -62,6 +64,20 @@ Summary analysisService(loc l, PROG_EXPRESSION e, PROG_CONTEXT c = toProgContext
     analysis.messages += {<m.at, m> | m <- analyze(c, e)};
     analysis.documentation += {*analysisService(l, eChor, c = cChor, p = just("<p>")).documentation | /glob(p, _, proceds) := e, /proced(_, eChor) := proceds};
     return analysis;
+}
+
+list[DocumentSymbol] documentSymbolService(start[Prog] input) {
+    PROG_EXPRESSION e = toAbstract(input.top.args[0]);
+    
+    list[DocumentSymbol] symbols = [];
+    for (/e1: glob(r, formals, proceds) := e) {
+        list[DocumentSymbol] children = [];
+        children += [symbol("<xData>", DocumentSymbolKind::\field(), f.src, detail="<toStr(tData)>") | f: formal(xData, tData, _) <- formals];
+        children += [symbol("<xChor>", DocumentSymbolKind::\method(), p.src) | p: proced(xChor, _) <- proceds, |unknown:///| != p.src];
+        symbols += [symbol("<toStr(val(<r, 0>))>", DocumentSymbolKind::\enum(), e1.src, children = children)];
+    }
+    symbols += [symbol("<toStr(val(rk))>", DocumentSymbolKind::\enumMember(), e1.src) | /e1: proc(rk, _, _) := e];
+    return symbols;
 }
 
 lrel[loc, Command] codeLensService(start[Prog] input) {
