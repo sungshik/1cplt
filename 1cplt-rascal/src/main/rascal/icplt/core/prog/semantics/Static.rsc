@@ -63,6 +63,9 @@ list[Message] analyze(PROG_CONTEXT c, PROG_EXPRESSION e) {
     messages += [warning("Unexpected parameter", formal.xDataSrc) | formal <- duplicateFormals];
     messages += [warning("Unexpected parameter", actual.xDataSrc) | actual <- duplicateActuals];
 
+    set[PROG_EXPRESSION] excessiveProcs = {exc | /g: glob(r, _, _) := e, g.cardinality == "1", /seq(/exc: proc(<r, _>, _, _), /proc(<r, _>, _, _)) := e};
+    messages += [warning("Unexpected process (single instance role)", proc.rkSrc) | proc <- excessiveProcs - duplicateProcs];
+
     // Check well-typedness of roles
     c = toProgContext(e);
     CHOR_CONTEXT cChor = CHOR_CONTEXT::context(c.gammas, c.deltas);
