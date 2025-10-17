@@ -202,5 +202,5 @@ list[InlayHint] inlayHintService(start[Prog] input) {
 }
 
 list[InlayHint] inlayHintService(PROG_EXPRESSION e) {
-    return [*inlayHintService(eChor) | /proced(_, eChor) := e];
+    return [*inlayHintService(eChor, name = g.cardinality == "1" ? "<r>" : "self") | /g: glob(r, _, proceds) := e, proced(_, eChor) <- proceds];
 }

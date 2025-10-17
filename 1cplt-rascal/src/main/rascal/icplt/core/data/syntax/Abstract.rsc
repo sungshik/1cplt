@@ -81,7 +81,7 @@ str toStr(DATA_TYPE _: union(types))
     = intercalate(" | ", [toStr(t) | t <- types]) ;
 
 private str parens(str s)
-    = contains(s, " ") ? "(<s>)" : s ;
+    = contains(s, " ") && (/[{\[].*[}\]]/ !:= s) ? "(<s>)" : s ;
 
 @autoName test bool _ac0b87b94364689030a8c10343b69607() = toStr(undefined()) == "undefined" ;
 @autoName test bool _1bed5ae90f396bd132e7764db2a3db55() = toStr(pid("@alice")) == "@alice" ;
