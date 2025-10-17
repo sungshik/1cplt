@@ -13,8 +13,13 @@ syntax ProgExpression
     ;
 
 syntax RoleDefinition
-    = "role" Role "(" {FormalParameter ","}* ")"
-    | "role" Role "(" {FormalParameter ","}* ")" "{" Procedure* "}"
+    = RoleKeyword Role "(" {FormalParameter ","}* ")"
+    | RoleKeyword Role "(" {FormalParameter ","}* ")" "{" Procedure* "}"
+    ;
+
+lexical RoleKeyword
+    = @category="keyword" "role"
+    | @category="keyword" "role*"
     ;
 
 syntax Procedure = ChorVariable ":" ChorExpression ;

@@ -15,7 +15,7 @@ default PROG_EXPRESSION toAbstract(e: (ProgExpression) _)
 
 data PROG_EXPRESSION(loc src = |unknown:///|)
     = empty()
-    | glob(ROLE r, list[PARAMETER] formals, list[PROCEDURE] proceds, loc rSrc = |unknown:///|)
+    | glob(ROLE r, list[PARAMETER] formals, list[PROCEDURE] proceds, loc rSrc = |unknown:///|, str cardinality = "1")
     | proc(PID rk, list[PARAMETER] actuals, CHOR_EXPRESSION eChor, loc rkSrc = |unknown:///|)
     | seq(PROG_EXPRESSION e1, PROG_EXPRESSION e2)
     ;
@@ -39,13 +39,21 @@ PROG_EXPRESSION toAbstract(e: (ProgExpression) `<ProgExpression e1> <ProgExpress
 
 PROG_EXPRESSION toAbstract(e: (RoleDefinition) `role <Role r>(<{FormalParameter ","}* formals>)`)
     = glob(toAbstract(r), [*toAbstract(formal) | formal <- formals], addMain([])) [src = e.src] [rSrc = r.src] ;
+PROG_EXPRESSION toAbstract(e: (RoleDefinition) `role* <Role r>(<{FormalParameter ","}* formals>)`)
+    = glob(toAbstract(r), [*toAbstract(formal) | formal <- formals], addMain([])) [src = e.src] [rSrc = r.src] [cardinality = "*"] ;
 PROG_EXPRESSION toAbstract(e: (RoleDefinition) `role <Role r>(<{FormalParameter ","}* formals>) { <Procedure* proceds> }`)
     = glob(toAbstract(r), [*toAbstract(formal) | formal <- formals], addMain([toAbstract(proced) | proced <- proceds])) [src = e.src] [rSrc = r.src] ;
+PROG_EXPRESSION toAbstract(e: (RoleDefinition) `role* <Role r>(<{FormalParameter ","}* formals>) { <Procedure* proceds> }`)
+    = glob(toAbstract(r), [*toAbstract(formal) | formal <- formals], addMain([toAbstract(proced) | proced <- proceds])) [src = e.src] [rSrc = r.src] [cardinality = "*"] ;
 
 @autoName test bool _a0d8241b9ec7d41f1cb9372786241862() = compare(toAbstract(parse(#RoleDefinition, "role @alice()")), glob("@alice", [], [proced("main", skip())])) ;
-@autoName test bool _b99600d1081c4f7a1b22b67e13bc74b6() = compare(toAbstract(parse(#RoleDefinition, "role @alice(x: number, y: boolean)")), glob("@alice", [formal("x", number(), nothing()), formal("y", boolean(), nothing())], [proced("main", skip())])) ;
+@autoName test bool _962c69b029ef07d6d4ac4f3c7b8f2c93() = compare(toAbstract(parse(#RoleDefinition, "role @alice(x: number, y: boolean)")), glob("@alice", [formal("x", number(), nothing()), formal("y", boolean(), nothing())], [proced("main", skip())], cardinality = "*")) ;
+@autoName test bool _116163570990e6652a1a44ee8180e39a() = compare(toAbstract(parse(#RoleDefinition, "role* @alice()")), glob("@alice", [], [proced("main", skip())], cardinality = "*")) ;
+@autoName test bool _87e1c38bb255596b0afc5e7e1dda9736() = compare(toAbstract(parse(#RoleDefinition, "role* @alice(x: number, y: boolean)")), glob("@alice", [formal("x", number(), nothing()), formal("y", boolean(), nothing())], [proced("main", skip())])) ;
 @autoName test bool _66dc133fceb5edbca164a2fda680c25c() = compare(toAbstract(parse(#RoleDefinition, "role @alice() { main: assign assign: x := 5 }")), glob("@alice", [], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
 @autoName test bool _19db31d78d64c11d0809086d1f97dd29() = compare(toAbstract(parse(#RoleDefinition, "role @alice(x: number, y: boolean) { main: assign assign: x := 5 }")), glob("@alice", [formal("x", number(), nothing()), formal("y", boolean(), nothing())], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))])) ;
+@autoName test bool _d27510daff88d7c55adfcf93fbc6ca43() = compare(toAbstract(parse(#RoleDefinition, "role* @alice() { main: assign assign: x := 5 }")), glob("@alice", [], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))], cardinality = "*")) ;
+@autoName test bool _6e9fc30b96310237dcc8c4ecabfb667b() = compare(toAbstract(parse(#RoleDefinition, "role* @alice(x: number, y: boolean) { main: assign assign: x := 5 }")), glob("@alice", [formal("x", number(), nothing()), formal("y", boolean(), nothing())], [proced("main", CHOR_EXPRESSION::var("assign")), proced("assign", asgn("x", val(5)))], cardinality = "*")) ;
 
 private list[PROCEDURE] addMain(list[PROCEDURE] proceds)
     = proceds + ((/proced("main", _) := proceds) ? [] : [proced("main", skip())]) ;
