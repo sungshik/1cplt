@@ -1,4 +1,4 @@
-role @node(
+role* @node(
   init: boolean,
   neighs: @node[],
   senders: @node[] = [],

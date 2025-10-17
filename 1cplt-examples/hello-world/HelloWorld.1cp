@@ -12,7 +12,7 @@ role @alice(i: number, n: number) {
     } ;
     \load ;
     \echo {i: i, n: n}
-  
+
   inc:
     i := i + 1
 }

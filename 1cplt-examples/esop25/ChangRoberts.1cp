@@ -1,4 +1,4 @@
-role @node(x: number = 0, leader: boolean = false, neigh: @node) {
+role* @node(x: number = 0, leader: boolean = false, neigh: @node) {
   main:
     self.rank -> neigh.x |> forward
 
