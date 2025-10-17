@@ -30,7 +30,7 @@ programming** (1CP) in practice. It is implemented in
 ## References
 
   - [**First-Person Choreographic Programming with Continuation-Passing
-    Communications**](https://doi.org/10.1007/978-3-031-91121-7_3).<br/>
+    Communications**](https://doi.org/10.1007/978-3-031-91121-7_3)<br/>
     Proceedings of ESOP'25 (34th European Symposium on Programming), LNCS 15695,
     62-90. 2025.<br/>
     ⭐ EAPLS Best Paper Award<br/>
