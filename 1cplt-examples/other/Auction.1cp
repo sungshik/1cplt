@@ -1,0 +1,23 @@
+role* @buyer(item?: string | null) {
+  main:
+    self -> @seller.b |> {
+      bs := [b].concat(bs) ;
+     if bs.length <= m then
+        item -> b.item |>
+          \echo ("Bought some: " + (item ?? ""))
+      else
+        null -> b.item |>
+          \echo "Bought nothing..."
+    }
+}
+
+role @seller(item: string, m: number, b?: @buyer, bs: @buyer[] = [])
+
+process @buyer[1]()
+process @buyer[2]()
+process @buyer[3]()
+process @seller(item = "foo", m = 2)
+
+#analyze
+#compile
+#execute

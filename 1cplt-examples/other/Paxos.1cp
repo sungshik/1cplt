@@ -1,0 +1,170 @@
+role* @server(
+  // -- Safety --
+  consensus: boolean = false,
+
+  b: number = -1,
+  bMax: number = -1,
+  bMax2b: number = -1,
+
+  v: string,
+  vMax2b: string = "",
+
+  message1a?: {s: @server; b: number},
+  message1b?: {s: @server; b: number; bMax2b: number; vMax2b: string},
+  message2a?: {s: @server; b: number; v: string},
+  message2b?: {s: @server; b: number; v: string},
+  timeout?: {},
+
+  hist1b: {s: @server; b: number; bMax2b: number; vMax2b: string}[] = [],
+  hist2b: {s: @server; b: number; v: string}[] = [],
+
+  servers: @server[],
+
+  // -- Liveness --
+  heartbeat?: @server,
+  heartbeats: @server[] = [],
+  elected: boolean = false,
+
+  // -- Optimisation 1 --
+  bPrev?: number,
+  responded: boolean = false
+) {
+  main:
+    \load ;
+    election
+
+  phase1a:
+    \echo "Phase 1a" ;
+    if !consensus then {
+      b := b == -1 ? self.rank : (b + servers.length + 1) ;
+      bMax := bMax > b ? bMax : b ;
+      hist1b := [] ;
+      hist2b := [] ;
+      \save ;
+      foreach<@server> s in servers do
+        {s: self, b: b} -> s.message1a |> phase1b ;
+
+      \ping 3000 ;
+      {} -> self.timeout |>
+        if !consensus then
+          phase1a
+    }
+
+  phase1b:
+    \echo "Phase 1b" ;
+    if message1a != undefined then
+      if !consensus && bMax < message1a.b then {
+        // -- Optimisation 2 --
+        hist2b := [] ;
+
+        // -- Safety --
+        bMax := message1a.b ;
+        \save ;
+        {s: self, b: bMax, bMax2b: bMax2b, vMax2b: vMax2b} ->
+            (message1a.s).message1b |> phase2a
+      }
+
+  phase2a:
+    \echo "Phase 2a" ;
+    if message1b != undefined then
+      if !consensus && b == bMax && bMax == message1b.b then {
+        hist1b := [message1b].concat(hist1b) ;
+        if (servers.length / 2) + 1 == hist1b.length then {
+          // -- Safety --
+          b := 0 ;
+          foreach<{s: @server; b: number; bMax2b: number; vMax2b: string}>
+              m in hist1b do {
+            b := m.bMax2b >= b ? m.bMax2b : b ;
+            v := m.bMax2b == b ? m.vMax2b : v
+          } ;
+          b := bMax ;
+
+          \save ;
+          foreach<@server> s in servers do
+            {s: self, b: b, v: v} -> s.message2a |> phase2b ;
+
+          // -- Optimisation 1 --
+          \ping 150 ;
+          b -> self.bPrev |>
+            if !consensus && b == bMax && b == bPrev then
+              if (servers.length / 2) + 1 > hist2b.length then
+                foreach<@server> s in servers do {
+                  responded := false ;
+                  foreach<{s: @server; b: number; v: string}>
+                      m in hist2b do
+                    responded := responded || m.s.rank == s.rank ;
+                  if !responded then
+                    {s: self, b: b, v: v} -> s.message2a |> phase2b
+                }
+        }
+      }
+
+  phase2b:
+    \echo "Phase 2b" ;
+    if message2a != undefined then
+      if !consensus && bMax <= message2a.b then {
+        // -- Optimisation 2 --
+        hist2b := bMax < message2a.b ? [] : hist2b ;
+
+        // -- Safety --
+        bMax := message2a.b ;
+        bMax2b := message2a.b ;
+        vMax2b := message2a.v ;
+        \save ;
+        {s: self, b: bMax2b, v: vMax2b} ->
+            (message2a.s).message2b |> phase3 ;
+
+        // -- Optimisation 2 --
+        foreach<@server> s in servers do
+          if s.rank != message2a.s.rank then
+            {s: self, b: bMax2b, v: vMax2b} -> s.message2b |>
+              if !consensus && bMax == message2b.b then {
+                hist2b := [message2b].concat(hist2b) ;
+                if (servers.length / 2) + 1 == hist2b.length then {
+                  v := message2b.v ;
+                  consensus
+                }
+              }
+      }
+
+  phase3:
+    \echo "Phase 3" ;
+    if message2b != undefined then
+      if !consensus && b == bMax && bMax == message2b.b then {
+        hist2b := [message2b].concat(hist2b) ;
+        if (servers.length / 2) + 1 == hist2b.length then
+          foreach<@server> s in [self].concat(servers) do
+            v -> s.v |> consensus
+      }
+
+  consensus:
+    if !consensus then {
+      \echo ("Consensus: " + v) ;
+      consensus := true
+    }
+
+  election:
+    \echo "Election" ;
+    if !consensus then {
+      foreach<@server> s in servers do
+        self -> s.heartbeat |>
+          heartbeats := [heartbeat].concat(heartbeats) ;
+
+      elected := true ;
+      foreach<@server> s in heartbeats do
+        elected := elected && self.rank < s.rank ;
+      if elected then
+        phase1a ;
+
+      heartbeats := [] ;
+      \ping 500 ;
+      {} -> self.timeout |> election
+    }
+}
+
+process @server[1](v = "foo", servers = [@server[2], @server[3]])
+process @server[2](v = "bar", servers = [@server[1], @server[3]])
+process @server[3](v = "baz", servers = [@server[1], @server[2]])
+
+#compile
+#execute

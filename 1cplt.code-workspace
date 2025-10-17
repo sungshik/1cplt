@@ -5,6 +5,10 @@
 			"path": "."
 		},
 		{
+			"name": "1cplt-examples",
+			"path": "1cplt-examples"
+		},
+		{
 			"name": "1cplt-rascal",
 			"path": "1cplt-rascal"
 		},

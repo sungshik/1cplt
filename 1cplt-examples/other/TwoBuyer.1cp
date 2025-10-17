@@ -1,0 +1,28 @@
+role @buyer1(quote?: number) {
+  main:
+    "foo" -> @seller.title |> {
+      quote -> @buyer1.quote |>
+        (quote / 3) -> @buyer2.contrib |>
+          decide
+    ; quote -> @buyer2.price |>
+        choose
+    }
+}
+
+role @buyer2(quote?: number, contrib?: number) {
+  decide:
+    if quote != undefined && contrib != undefined then
+      (quote - contrib * quote / 2) -> @seller.ok
+    else
+      \echo "Not enough information yet"
+}
+
+role @seller(title?: string, quote: number = 123, ok?: boolean)
+
+process @buyer1()
+process @buyer2()
+process @seller(quote = 456)
+
+#analyze
+#compile
+#execute

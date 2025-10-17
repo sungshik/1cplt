@@ -1,0 +1,35 @@
+role @client(
+  numbers: number[],
+  sum: number = 0,
+  server: @server = @server[1],
+  numbersLength?: number
+) {
+  main:
+    if numbers.length > 0 then {
+      {n1: sum, n2: numbers[0] ?? 0} -> server.req |> {
+        resp := req.n1 + req.n2 ;
+        resp -> @client.sum |> {
+          numbers := numbers.slice(1) ;
+          main
+        }
+      } ;
+      if server == (@server[1]) then {
+        \ping 1000 ;
+        numbers.length -> @client.numbersLength |>
+          if numbers.length == numbersLength then {
+            server := @server[2] ;
+            main
+          }
+      }
+    }
+}
+
+role* @server(req?: {n1: number; n2: number}, resp?: number)
+
+process @client(numbers = [5, 6, 7, 8])
+process @server[1]()
+process @server[2]()
+
+#analyze
+#compile
+#execute

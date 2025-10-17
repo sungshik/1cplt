@@ -1,4 +1,4 @@
-role @prod(ok: boolean = false) {
+role* @prod(ok: boolean = false) {
   main:
     self -> @cons.p |>
       if
