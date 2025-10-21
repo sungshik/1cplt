@@ -142,5 +142,5 @@ DATA_EXPRESSION defaultOf(DATA_TYPE _: array(t1))
     = val([]) ;
 DATA_EXPRESSION defaultOf(DATA_TYPE _: union([t1, *_]))
     = defaultOf(t1) ;
-DATA_EXPRESSION defaultOf(DATA_TYPE _: object(entries))
-    = val((k: v | k <- entries, val(v) := defaultOf(entries[k]))) ;
+DATA_EXPRESSION defaultOf(DATA_TYPE _: object(props))
+    = val((k: v | k <- props, val(v) := defaultOf(props[k]))) ;

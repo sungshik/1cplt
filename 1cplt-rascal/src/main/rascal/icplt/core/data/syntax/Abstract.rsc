@@ -18,7 +18,7 @@ data DATA_TYPE(loc src = |unknown:///|)
     | number()
     | string()
     | array(DATA_TYPE t)
-    | object(map[str, DATA_TYPE] entries)
+    | object(map[str, DATA_TYPE] props)
     | union(list[DATA_TYPE] types)
     ;
 
@@ -34,8 +34,8 @@ DATA_TYPE toAbstract(t: (DataType) `string`)
     = string() [src = t.src] ;
 DATA_TYPE toAbstract(t: (DataType) `<DataType t1>[]`)
     = array(toAbstract(t1)) [src = t.src] ;
-DATA_TYPE toAbstract(t: (DataType) `{<{DataTypeEntry [;]}* entries> <Semi? _>}`)
-    = object((() | it + toAbstract(entry) | entry <- entries)) [src = t.src] ;
+DATA_TYPE toAbstract(t: (DataType) `{<{DataTypeEntry [;]}* props> <Semi? _>}`)
+    = object((() | it + toAbstract(prop) | prop <- props)) [src = t.src] ;
 DATA_TYPE toAbstract(_: (DataType) `(<DataType t1>)`)
     = toAbstract(t1) ;
 DATA_TYPE toAbstract(t: (DataType) `<DataType t1> | <{DataType [|]}+ t234>`)
@@ -75,8 +75,8 @@ str toStr(DATA_TYPE _: string())
     = "string" ;
 str toStr(DATA_TYPE _: array(t1))
     = "<parens(toStr(t1))>[]" ;
-str toStr(DATA_TYPE _: object(entries))
-    = "{<intercalate("; ", ["<k>: <toStr(entries[k])>" | k <- entries])>}" ;
+str toStr(DATA_TYPE _: object(props))
+    = "{<intercalate("; ", ["<k>: <toStr(props[k])>" | k <- props])>}" ;
 str toStr(DATA_TYPE _: union(types))
     = intercalate(" | ", [toStr(t) | t <- types]) ;
 
@@ -168,7 +168,7 @@ default DATA_EXPRESSION toAbstract(e: (DataExpression) _)
     = val(UNDEFINED) [src = e.src] ;
 
 DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `<DataVariable x>: <DataExpression e1>`)
-    = app("entry", [val(toAbstract(x)) [src = x.src], toAbstract(e1)]) [src = e.src] ;
+    = app("prop", [val(toAbstract(x)) [src = x.src], toAbstract(e1)]) [src = e.src] ;
 DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `...<DataExpression e1>`)
     = app("spread", [toAbstract(e1)]) [src = e.src] ;
 
@@ -180,13 +180,13 @@ DATA_EXPRESSION toAbstract(e: (DataExpressionEntry) `...<DataExpression e1>`)
 @autoName test bool _2e8e6f9b191b338369e0a6ddf1911799() = compare(toAbstract(parse(#DataExpression, "[true, 5, \"foo\"]")), app("array", [val(true), val(5), val("foo")]));
 @autoName test bool _abf9b70ca937634f70fbf466ca0a55de() = compare(toAbstract(parse(#DataExpression, "[[[]]]")), app("array", [app("array", [app("array", [])])]));
 @autoName test bool _8d9e29199132916b6b840b8e62756792() = compare(toAbstract(parse(#DataExpression, "{}")), app("object", []));
-@autoName test bool _c3fdbe60ae17a63337963854e4ce0820() = compare(toAbstract(parse(#DataExpression, "{x: null}")), app("object", [app("entry", [val("x"), val(NULL)])]));
-@autoName test bool _530518a70f95eb03edcf1d91d003a4da() = compare(toAbstract(parse(#DataExpression, "{x: true, y: 5, z: \"foo\"}")), app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])]));
-@autoName test bool _16981e1fe0e50b52be014b752dcae728() = compare(toAbstract(parse(#DataExpression, "{outer: {inner: {}}}")), app("object", [app("entry", [val("outer"), app("object", [app("entry", [val("inner"), app("object", [])])])])]));
-@autoName test bool _ad6d1c5ca8fb5154892e1eec22921edb() = compare(toAbstract(parse(#DataExpression, "{outer: {inner: {},},}")), app("object", [app("entry", [val("outer"), app("object", [app("entry", [val("inner"), app("object", [])])])])]));
-@autoName test bool _56d44464ea9ce6b60502f98aa1b251bc() = compare(toAbstract(parse(#DataExpression, "{...{x: true, y: 5, z: \"foo\"}}")), app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])])]));
-@autoName test bool _c54bc9cd026420ad56e61b5f6495c978() = compare(toAbstract(parse(#DataExpression, "{x: false, ...{x: true, y: 5, z: \"foo\"}}")), app("object", [app("entry", [val("x"), val(false)]), app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])])]));
-@autoName test bool _d25e75c706753b27097998b2f8982269() = compare(toAbstract(parse(#DataExpression, "{...{x: true, y: 5, z: \"foo\"}, x: false}")), app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])]), app("entry", [val("x"), val(false)])]));
+@autoName test bool _c3fdbe60ae17a63337963854e4ce0820() = compare(toAbstract(parse(#DataExpression, "{x: null}")), app("object", [app("prop", [val("x"), val(NULL)])]));
+@autoName test bool _530518a70f95eb03edcf1d91d003a4da() = compare(toAbstract(parse(#DataExpression, "{x: true, y: 5, z: \"foo\"}")), app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])]));
+@autoName test bool _16981e1fe0e50b52be014b752dcae728() = compare(toAbstract(parse(#DataExpression, "{outer: {inner: {}}}")), app("object", [app("prop", [val("outer"), app("object", [app("prop", [val("inner"), app("object", [])])])])]));
+@autoName test bool _ad6d1c5ca8fb5154892e1eec22921edb() = compare(toAbstract(parse(#DataExpression, "{outer: {inner: {},},}")), app("object", [app("prop", [val("outer"), app("object", [app("prop", [val("inner"), app("object", [])])])])]));
+@autoName test bool _56d44464ea9ce6b60502f98aa1b251bc() = compare(toAbstract(parse(#DataExpression, "{...{x: true, y: 5, z: \"foo\"}}")), app("object", [app("spread", [app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])])])]));
+@autoName test bool _c54bc9cd026420ad56e61b5f6495c978() = compare(toAbstract(parse(#DataExpression, "{x: false, ...{x: true, y: 5, z: \"foo\"}}")), app("object", [app("prop", [val("x"), val(false)]), app("spread", [app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])])])]));
+@autoName test bool _d25e75c706753b27097998b2f8982269() = compare(toAbstract(parse(#DataExpression, "{...{x: true, y: 5, z: \"foo\"}, x: false}")), app("object", [app("spread", [app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])])]), app("prop", [val("x"), val(false)])]));
 @autoName test bool _c39c33a4d2d9cdb8b12432b06ac65ce1() = compare(toAbstract(parse(#DataExpression, "5 as number")), asc(val(5), number())) ;
 @autoName test bool _7b02dfcf7e6daba8fbd6c23fadf4e4a3() = compare(toAbstract(parse(#DataExpression, "(5)")), val(5)) ;
 @autoName test bool _bcd43a547a8e2cee387d7d43d6e1b3b3() = compare(toAbstract(parse(#DataExpression, "{}.x")), app("oaccess", [app("object", []), val("x")])) ;

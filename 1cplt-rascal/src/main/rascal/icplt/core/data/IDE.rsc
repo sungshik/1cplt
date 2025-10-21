@@ -46,8 +46,8 @@ Summary analysisService(loc l, DATA_EXPRESSION e, DATA_CONTEXT c = toDataContext
     analysis.messages += {<m.at, m> | app(",", args) := e, ei <- args, m <- analyze(c, ei)};
     analysis.messages += {<m.at, m> | app(",", _) !:= e, m <- analyze(c, e)};
     analysis.documentation += {<x.src, "`<toStr(t)>`"> | /x: var(_) := e, just(t) := infer(c, x)};
-    analysis.documentation += {<e1.src, "`<k>: <toStr(t)>`"> | /app("object", args) := e, app("entry", [e1: val(k), e2]) <- args, just(t) := infer(c, e2)};
-    analysis.documentation += {<e2.src, "`<k>: <toStr(entries[k])>`"> | /app("oaccess", [e1, e2: val(k)]) := e, just(object(entries)) := infer(c, e1), k in entries};
+    analysis.documentation += {<e1.src, "`<k>: <toStr(t)>`"> | /app("object", args) := e, app("prop", [e1: val(k), e2]) <- args, just(t) := infer(c, e2)};
+    analysis.documentation += {<e2.src, "`<k>: <toStr(props[k])>`"> | /app("oaccess", [e1, e2: val(k)]) := e, just(object(props)) := infer(c, e1), k in props};
     return analysis;
 }
 
