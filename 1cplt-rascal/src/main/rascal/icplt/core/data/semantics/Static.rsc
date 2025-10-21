@@ -444,8 +444,8 @@ list[Message] check(DATA_TYPE _: string(), DATA_CONTEXT c, DATA_EXPRESSION _: ap
  * Checking: Arrays
  */
 
-list[Message] check(DATA_TYPE _: array(t1), DATA_CONTEXT c, DATA_EXPRESSION e: val(ARRAY a))
-    = [*check(t1, c, val(vi)[src = e.src]) | vi <- a] ;
+list[Message] check(DATA_TYPE _: array(t1), DATA_CONTEXT c, DATA_EXPRESSION e: val(ARRAY arr))
+    = [*check(t1, c, val(vi)[src = e.src]) | vi <- arr] ;
 list[Message] check(DATA_TYPE _: array(t1), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, args))
     = [*check(t1, c, arg) | arg <- args] when f in {"array"} ;
 list[Message] check(DATA_TYPE _: array(t1), DATA_CONTEXT c, DATA_EXPRESSION _: app(f, [e1, e2]))

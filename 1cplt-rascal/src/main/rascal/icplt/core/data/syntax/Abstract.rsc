@@ -231,8 +231,8 @@ str toStr(DATA_EXPRESSION _: val(v)) {
             return "null";
         case STRING s: _:
             return "\"<s>\"";
-        case ARRAY a: _:
-            return "[<intercalate(", ", [toStr(val(vi)) | vi <- a])>]";
+        case ARRAY arr: _:
+            return "[<intercalate(", ", [toStr(val(vi)) | vi <- arr])>]";
         case OBJECT obj: _:
             return "{<intercalate(", ", ["<k>: <toStr(val(obj[k]))>" | k <- sort([*obj<0>])])>}";
         default:

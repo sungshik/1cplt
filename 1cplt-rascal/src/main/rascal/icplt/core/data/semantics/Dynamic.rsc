@@ -175,8 +175,8 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("rank", [val(<_, NUMBER k>)])>)
     = <s, val(k)> ;
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("length", [val(ARRAY a)])>)
-    = <s, val(size(a))> ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("length", [val(ARRAY arr)])>)
+    = <s, val(size(arr))> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("+",  [val(NUMBER n)])>)
     = <s, val(n)> ;
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("-",  [val(NUMBER n)])>)
@@ -231,16 +231,16 @@ tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app(
 
 tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("array", args)>)
     = <s, val([v | val(v) <- args])> when !any(arg <- args, !(arg is val));
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("concat", [val(ARRAY a1), val(ARRAY a2)])>)
-    = <s, val(a1 + a2)> ;
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("slice", [val(ARRAY a), val(NUMBER n1)])>)
-    = <s, val(slice(a, n1, size(a)))> ;
-tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("slice", [val(ARRAY a), val(NUMBER n1), val(NUMBER n2)])>)
-    = <s, val(slice(a, n1, n2))> ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("concat", [val(ARRAY arr1), val(ARRAY arr2)])>)
+    = <s, val(arr1 + arr2)> ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("slice", [val(ARRAY arr), val(NUMBER n1)])>)
+    = <s, val(slice(arr, n1, size(arr)))> ;
+tuple[DATA_STATE, DATA_EXPRESSION] reduce(<DATA_STATE s, DATA_EXPRESSION _: app("slice", [val(ARRAY arr), val(NUMBER n1), val(NUMBER n2)])>)
+    = <s, val(slice(arr, n1, n2))> ;
 
 private list[value] slice(list[value] l, int begin, int end) {
     length = size(l);
-    
+
     if (begin < -length) {
         begin = 0; // Inside
     } else if (-length <= begin && begin < 0) {
