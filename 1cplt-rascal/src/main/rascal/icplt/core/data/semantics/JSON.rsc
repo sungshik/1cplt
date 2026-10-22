@@ -18,8 +18,8 @@ str toJSON(DATA_TYPE _: string())
     = "{ \"type\": \"string\" }" ;
 str toJSON(DATA_TYPE _: array(t1))
     = "{ \"type\": \"array\", \"items\": <toJSON(t1)> }" ;
-str toJSON(DATA_TYPE _: object(entries))
-    = "{ \"type\": \"object\", \"properties\": { <intercalate(", ", ["\"<k>\": <toJSON(entries[k])>" | k <- entries])> } }" ;
+str toJSON(DATA_TYPE _: object(props))
+    = "{ \"type\": \"object\", \"properties\": { <intercalate(", ", ["\"<k>\": <toJSON(props[k])>" | k <- props])> } }" ;
 str toJSON(DATA_TYPE _: union(types))
     = "{ \"anyOf\": [<intercalate(", ", [toJSON(ti) | ti <- types])>] }" ;
 

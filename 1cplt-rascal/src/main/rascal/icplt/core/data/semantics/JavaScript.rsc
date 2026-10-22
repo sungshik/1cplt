@@ -65,7 +65,7 @@ str toJavaScript(DATA_EXPRESSION _: app(f, args))
     = "(<intercalate(", ", [toJavaScript(vi) | vi <- args])>)"
     when f in {","} ;
 
-str toJavaScript(DATA_EXPRESSION _: app("entry", [e1, e2]))
+str toJavaScript(DATA_EXPRESSION _: app("prop", [e1, e2]))
     = "<toJavaScript(e1)[1..-1]>: <toJavaScript(e2)>" ;
 str toJavaScript(DATA_EXPRESSION _: app("spread", [e1]))
     = "...<toJavaScript(e1)>" ;
@@ -82,10 +82,10 @@ str toJavaScript(DATA_EXPRESSION _: app("spread", [e1]))
 @autoName test bool _5f0d564cd60672ae7a441108ddefd289() = toJavaScript(val(("x": true, "y": 5, "z": "foo"))) == "{x: true, y: 5, z: \'foo\'}" ;
 @autoName test bool _16d3b513bb2553089a7819e207711daf() = toJavaScript(asc(val(5), number())) == "5" ;
 @autoName test bool _4731282fd41a7997a3d274dc63e2f78d() = toJavaScript(app("array", [val(5), val(6), val(7)])) == "[5, 6, 7]" ;
-@autoName test bool _b8830480975634be2fccc6a5c5cca67e() = toJavaScript(app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])) == "{x: true, y: 5, z: \'foo\'}" ;
-@autoName test bool _5174471ba7fcb8714dd73f064f4b6a31() = toJavaScript(app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])])])) == "{...{x: true, y: 5, z: \'foo\'}}" ;
-@autoName test bool _586ec1e4d0c6702cd75e9dd74b4dea5d() = toJavaScript(app("object", [app("entry", [val("x"), val(false)]), app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])])])) == "{x: false, ...{x: true, y: 5, z: \'foo\'}}" ;
-@autoName test bool _1fc6fe64a33f2f7a12b52b9f9bd85c8b() = toJavaScript(app("object", [app("spread", [app("object", [app("entry", [val("x"), val(true)]), app("entry", [val("y"), val(5)]), app("entry", [val("z"), val("foo")])])]), app("entry", [val("x"), val(false)])])) == "{...{x: true, y: 5, z: \'foo\'}, x: false}" ;
+@autoName test bool _b8830480975634be2fccc6a5c5cca67e() = toJavaScript(app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])])) == "{x: true, y: 5, z: \'foo\'}" ;
+@autoName test bool _5174471ba7fcb8714dd73f064f4b6a31() = toJavaScript(app("object", [app("spread", [app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])])])])) == "{...{x: true, y: 5, z: \'foo\'}}" ;
+@autoName test bool _586ec1e4d0c6702cd75e9dd74b4dea5d() = toJavaScript(app("object", [app("prop", [val("x"), val(false)]), app("spread", [app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])])])])) == "{x: false, ...{x: true, y: 5, z: \'foo\'}}" ;
+@autoName test bool _1fc6fe64a33f2f7a12b52b9f9bd85c8b() = toJavaScript(app("object", [app("spread", [app("object", [app("prop", [val("x"), val(true)]), app("prop", [val("y"), val(5)]), app("prop", [val("z"), val("foo")])])]), app("prop", [val("x"), val(false)])])) == "{...{x: true, y: 5, z: \'foo\'}, x: false}" ;
 @autoName test bool _547fac212cb09a60378ba6aa08e5eac2() = toJavaScript(app("length", [app("array", [val(5)])])) == "[5].length" ;
 @autoName test bool _646d3a20c64ee6348db2d50372087b49() = toJavaScript(app("oaccess", [app("object", []), val("x")])) == "{}.x" ;
 @autoName test bool _34fa6e958aed4a2231511f5e08e04091() = toJavaScript(app("slice", [app("array", []), val(1)])) == "[].slice(1)" ;
