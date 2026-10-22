@@ -33,7 +33,7 @@ void unregister(Language lang = language()) {
 }
 
 Language language() = language(
-    pathConfig(srcs = [|std:///|, |project://1cplt-rascal/src/main/rascal|]),
+    getProjectPathConfig(|project://1cplt-rascal|, mode = interpreter_external()),
     "1CPLT (Program Expressions)",
     {"1cp-prog"},
     "icplt::core::prog::IDE",
@@ -68,7 +68,7 @@ Summary analysisService(loc l, PROG_EXPRESSION e, PROG_CONTEXT c = toProgContext
 
 list[DocumentSymbol] documentSymbolService(start[Prog] input) {
     PROG_EXPRESSION e = toAbstract(input.top.args[0]);
-    
+
     list[DocumentSymbol] symbols = [];
     for (/e1: glob(r, formals, proceds) := e) {
         list[DocumentSymbol] children = [];
@@ -159,7 +159,7 @@ void executionService(directive("#analyze", [], start[Prog] input)) {
         '
         '<toPlainText(final)>
         '";
-    
+
     loc tmp = |tmp:///1cplt/<uuid().authority>/analysis.md|;
     writeFile(tmp, text);
     edit(tmp);
@@ -169,7 +169,7 @@ void executionService(directive("#compile", [], start[Prog] input)) {
     PROG_EXPRESSION e = toAbstract(input.top.args[0]);
     str name = input.src.file[..-4];
     loc directory = input.src.parent + "<name>";
-  
+
     for (f <- files(|project://1cplt-rascal/src/main/js/icplt|)) {
         copy(f, directory + f.file);
     }

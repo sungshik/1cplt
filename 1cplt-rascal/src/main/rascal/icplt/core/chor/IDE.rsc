@@ -21,7 +21,7 @@ void unregister(Language lang = language()) {
 }
 
 Language language() = language(
-    pathConfig(srcs = [|std:///|, |project://1cplt-rascal/src/main/rascal|]),
+    getProjectPathConfig(|project://1cplt-rascal|, mode = interpreter_external()),
     "1CPLT (Choreography Expressions)",
     {"1cp-chor"},
     "icplt::core::chor::IDE",
