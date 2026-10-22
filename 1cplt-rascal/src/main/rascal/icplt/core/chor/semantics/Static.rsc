@@ -80,7 +80,7 @@ list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: esc
     when inContext(p, c) ;
 list[Message] check(CHOR_TYPE _: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: esc("\\ping", args))
     = [error("Expected number of arguments: 1. Actual: <size(args)>", e.fSrc) | [_] !:= args]
-    + [*check(number(), context(c.gammas[p]), eData) | [eData] := args] 
+    + [*check(number(), context(c.gammas[p]), eData) | [eData] := args]
     when inContext(p, c) ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: CHOR_EXPRESSION::var(x))
     = [error("Unexpected choreography variable", e.src) | x notin c.deltas[p]]
@@ -108,9 +108,7 @@ list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: at(
     = [error("Expected data type: `<p>`. Actual: <actual(maybe)>.", eData.src) | maybe := infer(context(()), eData), just(pid(p)) !:= maybe]
     + [*check(t, c, e1) | just(pid(p)) := infer(context(()), eData)] ;
 list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq(e1, e2))
-    = check(t, c, e1) + check(t, removeUndefinedFrom(c, p, {xData}), e2) when asgn(xData ,_) := e1 ;
-list[Message] check(CHOR_TYPE t: chor(p), CHOR_CONTEXT c, CHOR_EXPRESSION e: seq(e1, e2))
-    = check(t, c, e1) + check(t, c, e2) when asgn(_ ,_) !:= e1 ;
+    = check(t, c, e1) + check(t, removeUndefinedFrom(c, p, getAssigned(e1)), e2) ;
 
 default list[Message] check(CHOR_TYPE t, CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = [error("Expected choreograpy type: `<toStr(t)>`. Actual: <actual(c, e)>.", e.src)] ;
@@ -177,4 +175,27 @@ private str actual(CHOR_CONTEXT c, CHOR_EXPRESSION e)
     = just(t) := infer(c, e) ? "`<toStr(t)>`" : "Failed to infer" ;
 
 private CHOR_CONTEXT removeUndefinedFrom(CHOR_CONTEXT c, ROLE r, set[DATA_VARIABLE] xDatas)
-    = c [gammas = c.gammas + (r: c.gammas[r] + (xData: tData | xData <- xDatas, xData in c.gammas[r], union([tData, undefined()]) := c.gammas[r][xData]))] ;
+    = c [gammas = c.gammas + (r: c.gammas[r] + (xData: tData | xData <- xDatas, xData in c.gammas[r], union([tData]) := flatten(removeNullish(c.gammas[r][xData]))))] ;
+
+private set[str] getAssigned(CHOR_EXPRESSION _: asgn(xData, _))
+    = {xData} ;
+private set[str] getAssigned(CHOR_EXPRESSION _: choice(_, e1, e2))
+    = getAssigned(e1) & getAssigned(e2) ;
+private set[str] getAssigned(CHOR_EXPRESSION _: seq(e1, e2))
+    = getAssigned(e1) + getAssigned(e2) ;
+private default set[str] getAssigned(CHOR_EXPRESSION _)
+    = {} ;
+
+private DATA_TYPE removeNullish(DATA_TYPE _: union([*before, undefined(), *after]))
+    = removeNullish(union([*before, *after])) ;
+private DATA_TYPE removeNullish(DATA_TYPE _: union([*before, null(), *after]))
+    = removeNullish(union([*before, *after])) ;
+private DATA_TYPE removeNullish(DATA_TYPE _: union(tDatas))
+    = union([removeNullish(tData) | tData <- tDatas]) ;
+private default DATA_TYPE removeNullish(DATA_TYPE tData)
+    = tData ;
+
+private DATA_TYPE flatten(DATA_TYPE _: union([*before, union(between), *after]))
+    = flatten(union([*before, *between, *after])) ;
+private default DATA_TYPE flatten(DATA_TYPE tData)
+    = tData ;

@@ -259,6 +259,10 @@ set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("!=", [var(x), val(UNDEFINE
     = {x} ;
 set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("!=", [val(UNDEFINED), var(x)]))
     = {x} ;
+set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("!=", [var(x), val(NULL)]))
+    = {x} ;
+set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("!=", [val(NULL), var(x)]))
+    = {x} ;
 set[DATA_VARIABLE] getDefined(DATA_EXPRESSION _: app("&&", [e1, e2]))
     = getDefined(e1) + getDefined(e2) ;
 
