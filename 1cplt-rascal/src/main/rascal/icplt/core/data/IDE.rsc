@@ -20,7 +20,7 @@ void unregister(Language lang = language()) {
 }
 
 Language language() = language(
-    pathConfig(srcs = [|std:///|, |project://1cplt-rascal/src/main/rascal|]),
+    getProjectPathConfig(|project://1cplt-rascal|, mode = interpreter_external()),
     "1CPLT (Data Expressions)",
     {"1cp-data"},
     "icplt::core::data::IDE",
