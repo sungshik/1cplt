@@ -1,0 +1,40 @@
+role @client(ns: number[], n?: number | null, res?: {fib: number}) {
+  main:
+    n := ns[0] ;
+    if n != null then {
+      ns := ns.slice(1) ;
+      {n: n} -> @server.req |>
+        fib
+    }
+}
+
+role @server(req?: {n: number}, res?: {fib: number}, x?: number, y?: number, i?: number) {
+  fib:
+    if req != undefined then {
+      if req.n <= 1 then
+        res := {fib: req.n}
+      else {
+        res := {fib: 2} ;
+        x := 0 ;
+        y := 1 ;
+        i := 2 ;
+        while i <= req.n do {
+          res := {fib: x + y} ;
+          x := y ;
+          y := res.fib ;
+          i := i + 1
+        }
+      } ;
+      res -> @client.res |> {
+        \echo res ;
+        main
+      }
+    }
+}
+
+process @client(ns = [5, 6, 7])
+process @server()
+
+#analyze
+#compile
+#execute

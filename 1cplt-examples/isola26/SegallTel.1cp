@@ -1,0 +1,136 @@
+role* @node(
+  id: number,
+  ns: @node[],
+  messages: {id: number; n: @node}[] = [], // History of all messages received
+  message?: {id: number; n: @node},
+  family?: @node[],
+  parent?: @node | null
+) {
+  main:
+    foreach<@node> n in ns do
+      {id: id, n: self} -> n.message |> recv
+
+  recv:
+    if message != undefined then
+      if id <= message.id then {
+        messages := messages.concat([message]) ;
+
+        family := [] ; // Each neighbour from which was received in this wave
+        foreach<{id: number; n: @node}> m in messages do
+          if message.id == m.id then family := family.concat([m.n]) ;
+
+        parent := family[0] ; // First neighbour from which was received in this wave
+        if parent != null then {
+
+          // Start participation in this wave by forwarding to non-parents
+          if message.id != id && family.length == 1 then
+            foreach<@node> nonParent in ns do
+              if parent.rank != nonParent.rank then
+                {id: message.id, n: self} -> nonParent.message |> recv ;
+
+          // Finish participation in this wave by forwarding to parent
+          if message.id != id && family.length == ns.length then
+            {id: message.id, n: self} -> parent.message |> recv ;
+
+          // Declare leadership
+          if message.id == id && family.length == ns.length then
+            \echo "Leader!"
+        }
+      }
+}
+
+// ## RING -- 24
+// process @node[1](id = 5, ns = [@node[2], @node[5]])
+// process @node[2](id = 6, ns = [@node[3], @node[1]])
+// process @node[3](id = 7, ns = [@node[4], @node[2]])
+// process @node[4](id = 8, ns = [@node[5], @node[3]])
+// process @node[5](id = 9, ns = [@node[1], @node[4]])
+// #execute
+
+// ## PIPELINE 1 -- 24
+// process @node[1](id = 5, ns = [@node[2]])
+// process @node[2](id = 6, ns = [@node[3], @node[1]])
+// process @node[3](id = 7, ns = [@node[4], @node[2]])
+// process @node[4](id = 8, ns = [@node[5], @node[3]])
+// process @node[5](id = 9, ns = [@node[4]])
+// #execute
+
+// ## PIPELINE 2 -- 17
+// process @node[1](id = 5, ns = [@node[2]])
+// process @node[2](id = 60, ns = [@node[3], @node[1]])
+// process @node[3](id = 7, ns = [@node[4], @node[2]])
+// process @node[4](id = 8, ns = [@node[5], @node[3]])
+// process @node[5](id = 9, ns = [@node[4]])
+// #execute
+
+// ## PIPELINE 3 -- 16
+// process @node[1](id = 5, ns = [@node[2]])
+// process @node[2](id = 6, ns = [@node[3], @node[1]])
+// process @node[3](id = 70, ns = [@node[4], @node[2]])
+// process @node[4](id = 8, ns = [@node[5], @node[3]])
+// process @node[5](id = 9, ns = [@node[4]])
+// #execute
+
+// ## FULL MESH -- 54
+// process @node[1](id = 5, ns = [@node[2], @node[3], @node[4], @node[5]])
+// process @node[2](id = 6, ns = [@node[1], @node[3], @node[4], @node[5]])
+// process @node[3](id = 7, ns = [@node[1], @node[2], @node[4], @node[5]])
+// process @node[4](id = 8, ns = [@node[1], @node[2], @node[3], @node[5]])
+// process @node[5](id = 9, ns = [@node[1], @node[2], @node[3], @node[4]])
+// #execute
+
+// ## PARTIAL MESH -- 22
+// process @node[1](id = 5, ns = [@node[3], @node[4]])
+// process @node[2](id = 6, ns = [@node[4], @node[5]])
+// process @node[3](id = 7, ns = [@node[1], @node[5]])
+// process @node[4](id = 8, ns = [@node[1], @node[2]])
+// process @node[5](id = 9, ns = [@node[2], @node[3]])
+// #execute
+
+// ## STAR 1 -- 27
+// process @node[1](id = 5, ns = [@node[2], @node[3], @node[4], @node[5]])
+// process @node[2](id = 6, ns = [@node[1]])
+// process @node[3](id = 7, ns = [@node[1]])
+// process @node[4](id = 8, ns = [@node[1]])
+// process @node[5](id = 9, ns = [@node[1]])
+// #execute
+
+// ## STAR 2 -- 27
+// process @node[1](id = 5, ns = [@node[2], @node[3], @node[4], @node[5]])
+// process @node[2](id = 60, ns = [@node[1]])
+// process @node[3](id = 7, ns = [@node[1]])
+// process @node[4](id = 8, ns = [@node[1]])
+// process @node[5](id = 9, ns = [@node[1]])
+// #execute
+
+// ## TREE 1 -- 19
+// process @node[1](id = 50, ns = [@node[2], @node[3]])
+// process @node[2](id = 6, ns = [@node[1], @node[4], @node[5]])
+// process @node[3](id = 7, ns = [@node[1]])
+// process @node[4](id = 8, ns = [@node[2]])
+// process @node[5](id = 9, ns = [@node[2]])
+// #execute
+
+// ## TREE 2 -- 14
+// process @node[1](id = 5, ns = [@node[2], @node[3]])
+// process @node[2](id = 60, ns = [@node[1], @node[4], @node[5]])
+// process @node[3](id = 7, ns = [@node[1]])
+// process @node[4](id = 8, ns = [@node[2]])
+// process @node[5](id = 9, ns = [@node[2]])
+// #execute
+
+// ## TREE 3 -- 23
+// process @node[1](id = 5, ns = [@node[2], @node[3]])
+// process @node[2](id = 6, ns = [@node[1], @node[4], @node[5]])
+// process @node[3](id = 70, ns = [@node[1]])
+// process @node[4](id = 8, ns = [@node[2]])
+// process @node[5](id = 9, ns = [@node[2]])
+// #execute
+
+// ## TREE 4 -- 24
+// process @node[1](id = 5, ns = [@node[2], @node[3]])
+// process @node[2](id = 6, ns = [@node[1], @node[4], @node[5]])
+// process @node[3](id = 7, ns = [@node[1]])
+// process @node[4](id = 80, ns = [@node[2]])
+// process @node[5](id = 9, ns = [@node[2]])
+// #execute

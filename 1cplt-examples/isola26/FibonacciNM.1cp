@@ -1,0 +1,62 @@
+role* @client(ns: number[], n?: number | null, res?: {fib: number}, ss: @server[], s?: @server | null) {
+  main:
+    n := ns[0] ;
+    s := ss[ns.length % ss.length] ;
+    if n != null && s != null then {
+      ns := ns.slice(1) ;
+      {n: n, c: self} -> s.req |>
+        fib
+    }
+}
+
+role* @server(req?: {n: number; c: @client}, res?: {fib: number}, x?: number, y?: number, i?: number) {
+  fib:
+    if req != undefined then {
+      if req.n <= 1 then
+        res := {fib: req.n}
+      else {
+        res := {fib: 2} ;
+        x := 0 ;
+        y := 1 ;
+        i := 2 ;
+        while i <= req.n do {
+          res := {fib: x + y} ;
+          x := y ;
+          y := res.fib ;
+          i := i + 1
+        }
+      } ;
+      res -> req.c.res |> {
+        \echo res ;
+        main
+      }
+    }
+}
+
+// // Deployment A
+//
+// process @client[1](
+//   ns = [1, 2, 3],
+//   ss = [@server[1], @server[2]])
+//
+// process @client[2](
+//   ns = [5, 6, 7],
+//   ss = [@server[2], @server[3]])
+
+// // Deployment B
+//
+// process @client[1](
+//   ns = [1, 2, 3],
+//   ss = [@server[1]])
+//
+// process @client[2](
+//   ns = [5, 6, 7],
+//   ss = [@server[1], @server[2], @server[3]])
+
+process @server[1]()
+process @server[2]()
+process @server[3]()
+
+#analyze
+#compile
+#execute
