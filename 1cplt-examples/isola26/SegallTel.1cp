@@ -39,98 +39,98 @@ role* @node(
       }
 }
 
-// ## RING -- 24
+// RING (24 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2], @node[5]])
 // process @node[2](id = 6, ns = [@node[3], @node[1]])
 // process @node[3](id = 7, ns = [@node[4], @node[2]])
 // process @node[4](id = 8, ns = [@node[5], @node[3]])
 // process @node[5](id = 9, ns = [@node[1], @node[4]])
-// #execute
 
-// ## PIPELINE 1 -- 24
+// PIPELINE 1 (24 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2]])
 // process @node[2](id = 6, ns = [@node[3], @node[1]])
 // process @node[3](id = 7, ns = [@node[4], @node[2]])
 // process @node[4](id = 8, ns = [@node[5], @node[3]])
 // process @node[5](id = 9, ns = [@node[4]])
-// #execute
 
-// ## PIPELINE 2 -- 17
+// PIPELINE 2 (17 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2]])
 // process @node[2](id = 60, ns = [@node[3], @node[1]])
 // process @node[3](id = 7, ns = [@node[4], @node[2]])
 // process @node[4](id = 8, ns = [@node[5], @node[3]])
 // process @node[5](id = 9, ns = [@node[4]])
-// #execute
 
-// ## PIPELINE 3 -- 16
+// PIPELINE 3 (16 message)
+// #execute
 // process @node[1](id = 5, ns = [@node[2]])
 // process @node[2](id = 6, ns = [@node[3], @node[1]])
 // process @node[3](id = 70, ns = [@node[4], @node[2]])
 // process @node[4](id = 8, ns = [@node[5], @node[3]])
 // process @node[5](id = 9, ns = [@node[4]])
-// #execute
 
-// ## FULL MESH -- 54
+// FULL MESH (54 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2], @node[3], @node[4], @node[5]])
 // process @node[2](id = 6, ns = [@node[1], @node[3], @node[4], @node[5]])
 // process @node[3](id = 7, ns = [@node[1], @node[2], @node[4], @node[5]])
 // process @node[4](id = 8, ns = [@node[1], @node[2], @node[3], @node[5]])
 // process @node[5](id = 9, ns = [@node[1], @node[2], @node[3], @node[4]])
-// #execute
 
-// ## PARTIAL MESH -- 22
+// PARTIAL MESH (22 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[3], @node[4]])
 // process @node[2](id = 6, ns = [@node[4], @node[5]])
 // process @node[3](id = 7, ns = [@node[1], @node[5]])
 // process @node[4](id = 8, ns = [@node[1], @node[2]])
 // process @node[5](id = 9, ns = [@node[2], @node[3]])
-// #execute
 
-// ## STAR 1 -- 27
+// STAR 1 (27 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2], @node[3], @node[4], @node[5]])
 // process @node[2](id = 6, ns = [@node[1]])
 // process @node[3](id = 7, ns = [@node[1]])
 // process @node[4](id = 8, ns = [@node[1]])
 // process @node[5](id = 9, ns = [@node[1]])
-// #execute
 
-// ## STAR 2 -- 27
+// STAR 2 (27 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2], @node[3], @node[4], @node[5]])
 // process @node[2](id = 60, ns = [@node[1]])
 // process @node[3](id = 7, ns = [@node[1]])
 // process @node[4](id = 8, ns = [@node[1]])
 // process @node[5](id = 9, ns = [@node[1]])
-// #execute
 
-// ## TREE 1 -- 19
+// TREE 1 (19 messages)
+// #execute
 // process @node[1](id = 50, ns = [@node[2], @node[3]])
 // process @node[2](id = 6, ns = [@node[1], @node[4], @node[5]])
 // process @node[3](id = 7, ns = [@node[1]])
 // process @node[4](id = 8, ns = [@node[2]])
 // process @node[5](id = 9, ns = [@node[2]])
-// #execute
 
-// ## TREE 2 -- 14
+// TREE 2 (14 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2], @node[3]])
 // process @node[2](id = 60, ns = [@node[1], @node[4], @node[5]])
 // process @node[3](id = 7, ns = [@node[1]])
 // process @node[4](id = 8, ns = [@node[2]])
 // process @node[5](id = 9, ns = [@node[2]])
-// #execute
 
-// ## TREE 3 -- 23
+// TREE 3 (23 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2], @node[3]])
 // process @node[2](id = 6, ns = [@node[1], @node[4], @node[5]])
 // process @node[3](id = 70, ns = [@node[1]])
 // process @node[4](id = 8, ns = [@node[2]])
 // process @node[5](id = 9, ns = [@node[2]])
-// #execute
 
-// ## TREE 4 -- 24
+// TREE 4 (24 messages)
+// #execute
 // process @node[1](id = 5, ns = [@node[2], @node[3]])
 // process @node[2](id = 6, ns = [@node[1], @node[4], @node[5]])
 // process @node[3](id = 7, ns = [@node[1]])
 // process @node[4](id = 80, ns = [@node[2]])
 // process @node[5](id = 9, ns = [@node[2]])
-// #execute
