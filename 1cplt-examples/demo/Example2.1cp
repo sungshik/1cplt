@@ -1,0 +1,22 @@
+role @alice() {
+  main:
+    5 -> @bob.y |>
+      if x == y then
+        y -> @carol.z1
+      else
+        y -> @dave.z2
+}
+
+role @bob(x: number = 123, y: number = 0) {}
+
+role @carol(z1: number = 0) {}
+
+role @dave(z2: number = 0) {}
+
+#compile
+
+#execute
+process @alice()
+process @bob()
+process @carol()
+process @dave()

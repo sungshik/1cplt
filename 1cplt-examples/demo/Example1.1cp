@@ -1,0 +1,16 @@
+role @alice() {
+  main:
+    5 -> @bob.y |>
+      y -> @carol.z1
+}
+
+role @bob(y: number = 0) {}
+
+role @carol(z1: number = 0) {}
+
+#compile
+
+#execute
+process @alice()
+process @bob()
+process @carol()
